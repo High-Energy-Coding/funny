@@ -7,6 +7,9 @@ defmodule FunnyWeb.Router do
 
   scope "/api", FunnyWeb do
     pipe_through :api
+
+    resources "/persons", PersonController
+    resources "/jokes", JokeController
   end
 
   # Enables LiveDashboard only for development

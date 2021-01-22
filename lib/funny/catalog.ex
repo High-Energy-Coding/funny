@@ -114,7 +114,7 @@ defmodule Funny.Catalog do
 
   """
   def list_jokes do
-    Repo.all(Joke)
+    Repo.all(from j in Joke, preload: [:person])
   end
 
   @doc """

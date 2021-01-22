@@ -1,6 +1,7 @@
 defmodule FunnyWeb.JokeView do
   use FunnyWeb, :view
   alias FunnyWeb.JokeView
+  alias FunnyWeb.PersonView
 
   def render("index.json", %{jokes: jokes}) do
     %{data: render_many(jokes, JokeView, "joke.json")}
@@ -11,7 +12,10 @@ defmodule FunnyWeb.JokeView do
   end
 
   def render("joke.json", %{joke: joke}) do
-    %{id: joke.id,
-      content: joke.content}
+    %{
+      id: joke.id,
+      content: joke.content,
+      person: render_one(joke.person, PersonView, "person.json")
+    }
   end
 end
