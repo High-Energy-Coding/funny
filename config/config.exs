@@ -10,6 +10,8 @@ use Mix.Config
 config :funny,
   ecto_repos: [Funny.Repo]
 
+config :funny, Funny.Repo, migration_primary_key: [name: :id, type: :binary_id]
+
 # Configures the endpoint
 config :funny, FunnyWeb.Endpoint,
   url: [host: "localhost"],
