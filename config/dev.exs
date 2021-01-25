@@ -1,5 +1,7 @@
 use Mix.Config
 
+config :funny, :envy, :dev
+
 # Configure your database
 config :funny, Funny.Repo,
   username: "postgres",
@@ -22,10 +24,12 @@ config :funny, FunnyWeb.Endpoint,
   check_origin: false,
   watchers: [
     node: [
-      "node_modules/webpack/bin/webpack.js",
-      "--mode",
-      "development",
-      "--watch-stdin",
+      "node_modules/.bin/webpack-dev-server",
+      "--hot",
+      "--colors",
+      "--stdin",
+      "--port",
+      "3000",
       cd: Path.expand("../assets", __DIR__)
     ]
   ]
