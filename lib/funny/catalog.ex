@@ -131,7 +131,9 @@ defmodule Funny.Catalog do
       ** (Ecto.NoResultsError)
 
   """
-  def get_joke!(id), do: Repo.get!(Joke, id)
+  def get_joke!(id) do
+    Repo.one(from j in Joke, where: j.id == ^id, preload: [:person])
+  end
 
   @doc """
   Creates a joke.
@@ -149,6 +151,13 @@ defmodule Funny.Catalog do
     %Joke{}
     |> Joke.changeset(attrs)
     |> Repo.insert()
+    |> case do
+      {:ok, new_joke} ->
+        {:ok, get_joke!(new_joke.id)}
+
+      e ->
+        e
+    end
   end
 
   @doc """
