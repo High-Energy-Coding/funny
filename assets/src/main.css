@@ -102,6 +102,12 @@ img {
     justify-content: space-between;
     border-radius: 3px;
 }
+
+#deleteButton {
+
+
+}
+
 .jokes-view {
     margin: 0 8px;
     display:flex;
