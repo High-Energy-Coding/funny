@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (class, src, value)
+import Html.Attributes exposing (class, id, src, value)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as D exposing (Decoder)
@@ -22,6 +22,7 @@ type Model
     | WriteJoke WriteJokeState
     | ThankYouScreen
     | ViewAllJokes RemoteJokes
+    | SuccessDELETE
 
 
 type WriteJokeState
@@ -39,7 +40,7 @@ type alias RemoteJokes =
 
 type alias Joke =
     { content : String
-    , id : Int
+    , id : String
     , jokester : Jokester
     }
 
@@ -81,9 +82,11 @@ type Msg
     | ReturnToHome
     | UserClickedViewAllJokes
     | UserClickedNavigateHome
+    | UserClickedTheDeleteButton String
     | ServerRespondedToJokeSubmission (Result Http.Error String)
     | ServerSentJokes (Result Http.Error (List Joke))
     | ServerSentJokesters (Result Http.Error (List Jokester))
+    | DeleteUp (Result Http.Error ())
     | NOOP
 
 
@@ -111,6 +114,9 @@ update msg model =
         UserClickedSubmitJoke ->
             userSubmittedJokeUpdate model
 
+        UserClickedTheDeleteButton ident ->
+            ( Home NotAsked, deleteTheAPI ident )
+
         ServerRespondedToJokeSubmission httpResult ->
             case httpResult of
                 Ok status ->
@@ -135,6 +141,14 @@ update msg model =
                 Err e ->
                     ( ViewAllJokes <| Failure e, Cmd.none )
 
+        DeleteUp test ->
+            case test of
+                Ok () ->
+                    ( ViewAllJokes Loading, getAllRemoteJokes )
+
+                Err e ->
+                    ( ViewAllJokes <| Failure e, Cmd.none )
+
         WriteJokeTypings s ->
             ( writeJokeUpdate s model, Cmd.none )
 
@@ -146,7 +160,7 @@ userSubmittedJokeUpdate model =
             ( Home NotAsked, Cmd.none )
 
         WriteJoke (TypingOutJoke jokester typings) ->
-            ( WriteJoke (SavingJoke jokester typings), mkJoke typings jokester |> postNewJoke )
+            ( WriteJoke (SavingJoke jokester typings), mkJoke typings "" jokester |> postNewJoke )
 
         _ ->
             ( model, Cmd.none )
@@ -192,6 +206,19 @@ postNewJoke joke =
         }
 
 
+deleteTheAPI : String -> Cmd Msg
+deleteTheAPI ident =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = "/api/jokes/" ++ ident
+        , body = Http.emptyBody
+        , expect = Http.expectWhatever DeleteUp
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
 jokestersDecoder : Decoder (List Jokester)
 jokestersDecoder =
     D.list jokesterDecoder
@@ -202,9 +229,9 @@ jokesDecoder =
     D.list jokeDecoder
 
 
-mkJoke : String -> Jokester -> Joke
-mkJoke content jokester =
-    Joke content 777 jokester
+mkJoke : String -> String -> Jokester -> Joke
+mkJoke content ident jokester =
+    Joke content ident jokester
 
 
 jokeEncoder : Joke -> E.Value
@@ -223,8 +250,9 @@ jokeEncoder joke =
 
 jokeDecoder : Decoder Joke
 jokeDecoder =
-    D.map2 mkJoke
+    D.map3 mkJoke
         (D.field "content" D.string)
+        (D.field "id" D.string)
         (D.field "person" jokesterDecoder)
 
 
@@ -253,12 +281,15 @@ view model =
                 SelectJokester jokesters ->
                     selectJokestersView jokesters
 
+                SuccessDELETE ->
+                    homeView
+
                 WriteJoke writeJokeState ->
                     writeJokeViewWrapper writeJokeState
 
                 --writeJokeView jokester s
                 ThankYouScreen ->
-                    div [ class "full-width" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
+                    div [ class "full-width" ] [ h1 [] [ text "thanks for sharing 🤗" ] ]
 
 
 writeJokeViewWrapper : WriteJokeState -> Html Msg
@@ -316,7 +347,13 @@ jokeView joke =
     div [ class "joke-view" ]
         [ span [ class "joke-content" ] [ text joke.content ]
         , span [ class "joke-jokester" ] [ text <| jokesterToName joke.jokester ]
+        , button [ onClick (UserClickedTheDeleteButton joke.id) ] [ text "Delete" ]
         ]
+
+
+
+-- 79cf607f-bf23-48a9-8564-370e4982553c
+--(UserClickedTheDeleteButton (String.fromInt person.id))
 
 
 jokesterToName (Jokester name _) =
