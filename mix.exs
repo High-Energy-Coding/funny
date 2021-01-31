@@ -33,6 +33,9 @@ defmodule Funny.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:material,
+       git: "git@github.com:High-Energy-Coding/material.git",
+       ref: "3cfe1141d8d03dd9e08cee891d0519bb6d0353f0"},
       {:phoenix, "~> 1.5.7"},
       {:phoenix_ecto, "~> 4.1"},
       {:ecto_sql, "~> 3.4"},

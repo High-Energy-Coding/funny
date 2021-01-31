@@ -7,6 +7,8 @@ defmodule Funny.Catalog do
   alias Funny.Repo
 
   alias Funny.Catalog.Person
+  alias Funny.Catalog.Joke
+  alias Funny.Context
 
   @doc """
   Returns the list of persons.
@@ -101,8 +103,6 @@ defmodule Funny.Catalog do
   def change_person(%Person{} = person, attrs \\ %{}) do
     Person.changeset(person, attrs)
   end
-
-  alias Funny.Catalog.Joke
 
   @doc """
   Returns the list of jokes.

@@ -1,8 +1,13 @@
 defmodule Funny.Catalog.Joke do
   use Ecto.Schema
+  use Material.Mutator
+  use Material.Querier
+
   import Ecto.Changeset
 
   alias Funny.Catalog.Person
+
+  @type t :: %__MODULE__{}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -12,6 +17,9 @@ defmodule Funny.Catalog.Joke do
     belongs_to(:person, Person)
     timestamps()
   end
+
+  mutable()
+  queryable()
 
   @doc false
   def changeset(joke, attrs) do
