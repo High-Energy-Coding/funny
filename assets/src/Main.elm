@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (class, id, src, value)
+import Html.Attributes exposing (attribute, class, for, id, name, src, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as D exposing (Decoder)
@@ -17,12 +17,27 @@ import Task
 
 
 type Model
-    = Home RemoteJokesters
+    = Home HomeModel
     | SelectJokester (List Jokester)
     | WriteJoke WriteJokeState
     | ThankYouScreen
     | ViewAllJokes RemoteJokes
     | SuccessDELETE
+
+
+type HomeModel
+    = LoggedOut UsernameTypings PasswordTypings
+    | LoginRequestSent UsernameTypings PasswordTypings
+    | LoggedIn
+    | ErrorLoggingIn String UsernameTypings PasswordTypings
+
+
+type alias UsernameTypings =
+    String
+
+
+type alias PasswordTypings =
+    String
 
 
 type WriteJokeState
@@ -51,23 +66,7 @@ type Jokester
 
 init : ( Model, Cmd Msg )
 init =
-    ( Home NotAsked, Cmd.none )
-
-
-hardCodedJoke =
-    { content = "WHy did the chicken cross the road?"
-    , id = 2
-    , jokester = Jokester "Graham"
-    }
-
-
-hardCodedJokesters =
-    [ Jokester "Graham"
-    , Jokester "Brittany"
-    , Jokester "Doug"
-    , Jokester "Oakley"
-    , Jokester "Easton"
-    ]
+    ( Home (LoggedOut "" ""), Cmd.none )
 
 
 
@@ -87,6 +86,12 @@ type Msg
     | ServerSentJokes (Result Http.Error (List Joke))
     | ServerSentJokesters (Result Http.Error (List Jokester))
     | DeleteUp (Result Http.Error ())
+    | UserTypingUsername String
+    | UserTypingPassword String
+    | UserClickedLogin
+    | ServerRespondedToLogoutAttempt (Result Http.Error ())
+    | ServerRespondedToLoginAttempt (Result Http.Error ())
+    | UserClickedLogOut
     | NOOP
 
 
@@ -96,17 +101,60 @@ update msg model =
         NOOP ->
             ( model, Cmd.none )
 
+        UserClickedLogOut ->
+            ( model, sendLogoutAttempt )
+
+        UserTypingPassword str ->
+            case model of
+                Home (LoggedOut uT pT) ->
+                    ( Home (LoggedOut uT str), Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        UserTypingUsername str ->
+            case model of
+                Home (LoggedOut uT pT) ->
+                    ( Home (LoggedOut str pT), Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        UserClickedLogin ->
+            case model of
+                Home (LoggedOut uT pT) ->
+                    ( Home (LoginRequestSent uT pT), sendLoginAttempt uT pT )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ServerRespondedToLogoutAttempt resp ->
+            case resp of
+                Ok _ ->
+                    ( Home (LoggedOut "" ""), Cmd.none )
+
+                Err e ->
+                    ( Home (ErrorLoggingIn "woops" "" ""), Cmd.none )
+
+        ServerRespondedToLoginAttempt resp ->
+            case resp of
+                Ok _ ->
+                    ( Home LoggedIn, Cmd.none )
+
+                Err e ->
+                    ( Home (ErrorLoggingIn "woops" "" ""), Cmd.none )
+
         ReturnToHome ->
-            ( Home NotAsked, Cmd.none )
+            ( Home LoggedIn, Cmd.none )
 
         UserClickedViewAllJokes ->
             ( ViewAllJokes Loading, getAllRemoteJokes )
 
         UserClickedNavigateHome ->
-            ( Home NotAsked, Cmd.none )
+            ( Home LoggedIn, Cmd.none )
 
         UserClickedLogJoke ->
-            ( Home Loading, getAllRemoteJokesters )
+            ( Home LoggedIn, getAllRemoteJokesters )
 
         UserSelectedJokester jokester ->
             ( WriteJoke (TypingOutJoke jokester ""), Cmd.none )
@@ -115,7 +163,7 @@ update msg model =
             userSubmittedJokeUpdate model
 
         UserClickedTheDeleteButton ident ->
-            ( Home NotAsked, deleteTheAPI ident )
+            ( Home (LoggedOut "" ""), deleteTheAPI ident )
 
         ServerRespondedToJokeSubmission httpResult ->
             case httpResult of
@@ -131,7 +179,7 @@ update msg model =
                     ( SelectJokester jokesters, Cmd.none )
 
                 Err e ->
-                    ( Home <| Failure e, Cmd.none )
+                    Debug.todo "OH BOY"
 
         ServerSentJokes httpResult ->
             case httpResult of
@@ -153,11 +201,31 @@ update msg model =
             ( writeJokeUpdate s model, Cmd.none )
 
 
+sendLogoutAttempt =
+    Http.get
+        { url = "/logout"
+        , expect = Http.expectWhatever ServerRespondedToLogoutAttempt
+        }
+
+
+sendLoginAttempt username passwd =
+    Http.post
+        { url = "/login"
+        , expect = Http.expectWhatever ServerRespondedToLoginAttempt
+        , body =
+            Http.jsonBody <|
+                E.object
+                    [ ( "username", E.string username )
+                    , ( "password", E.string passwd )
+                    ]
+        }
+
+
 userSubmittedJokeUpdate : Model -> ( Model, Cmd Msg )
 userSubmittedJokeUpdate model =
     case model of
         WriteJoke (TypingOutJoke jokester "") ->
-            ( Home NotAsked, Cmd.none )
+            ( Home (LoggedOut "" ""), Cmd.none )
 
         WriteJoke (TypingOutJoke jokester typings) ->
             ( WriteJoke (SavingJoke jokester typings), mkJoke typings "" jokester |> postNewJoke )
@@ -272,8 +340,8 @@ view model =
     div [ class "body" ] <|
         List.singleton <|
             case model of
-                Home remoteJokesters ->
-                    homeView
+                Home homeM ->
+                    loginInHomeView homeM
 
                 ViewAllJokes remoteJokes ->
                     viewAllJokesView remoteJokes
@@ -289,7 +357,7 @@ view model =
 
                 --writeJokeView jokester s
                 ThankYouScreen ->
-                    div [ class "full-width" ] [ h1 [] [ text "thanks for sharing 🤗" ] ]
+                    div [ class "full-width" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
 
 
 writeJokeViewWrapper : WriteJokeState -> Html Msg
@@ -300,6 +368,66 @@ writeJokeViewWrapper writeJokeState =
 
         SavingJoke jokester s ->
             writeJokeView jokester s
+
+
+loginInHomeView : HomeModel -> Html Msg
+loginInHomeView hM =
+    div [ class "full-width home-view" ]
+        [ h1 [ class "h1" ]
+            [ text "Someone Had A"
+            , br [] []
+            , span [ class "very" ] [ text "Very" ]
+            , br [] []
+            , text "Funny Joke Today"
+            ]
+        , loginStatus hM
+        ]
+
+
+loginStatus hM =
+    case hM of
+        LoggedOut uT pT ->
+            div []
+                [ div []
+                    [ label [ for "username" ] [ text "Username:" ]
+                    , input
+                        [ id "username"
+                        , name "username"
+                        , type_ "text"
+                        , value uT
+                        , onInput UserTypingUsername
+                        ]
+                        []
+                    ]
+                , div []
+                    [ label [ for "pass" ] [ text "Password:" ]
+                    , input
+                        [ id "pass"
+                        , attribute "minlength" "4"
+                        , name "password"
+                        , attribute "required" ""
+                        , type_ "password"
+                        , value pT
+                        , onInput UserTypingPassword
+                        ]
+                        []
+                    ]
+                , button [ onClick UserClickedLogin ] [ text "Sign in" ]
+                , button [ class "previous-jokes-button", onClick UserClickedViewAllJokes ] [ text "< previous jokes" ]
+                ]
+
+        LoginRequestSent _ _ ->
+            text "LoginRequestSent"
+
+        LoggedIn ->
+            div []
+                [ button [ onClick UserClickedLogOut ] [ text "log out" ]
+                , button [ class "previous-jokes-button", onClick UserClickedViewAllJokes ] [ text "< previous jokes" ]
+                , button [ class "write-it-down-button", onClick UserClickedLogJoke ] [ text "write it down >" ]
+                ]
+
+        ErrorLoggingIn _ _ _ ->
+            text "error"
 
 
 homeView : Html Msg
