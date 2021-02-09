@@ -11,13 +11,14 @@
 # and so on) as they will fail if something goes wrong.
 #
 #
-alias Funny.Catalog
+alias Funny.Catalog.Person
+alias Funny.Catalog.Joke
 
-{:ok, %{id: homer_id}} = Catalog.create_person(%{name: "Homer"})
-{:ok, %{id: marge_id}} = Catalog.create_person(%{name: "Marge"})
-{:ok, _} = Catalog.create_person(%{name: "Bart"})
-{:ok, _} = Catalog.create_person(%{name: "Lisa"})
-{:ok, _} = Catalog.create_person(%{name: "Maggie"})
+{:ok, %{id: homer_id}} = Person.insert(%{name: "Homer"})
+{:ok, %{id: marge_id}} = Person.insert(%{name: "Marge"})
+{:ok, _} = Person.insert(%{name: "Bart"})
+{:ok, _} = Person.insert(%{name: "Lisa"})
+{:ok, _} = Person.insert(%{name: "Maggie"})
 
 [
   "Facts Are Meaningless. You Could Use Facts To Prove Anything That's Even Remotely True.",
@@ -25,7 +26,7 @@ alias Funny.Catalog
   "You’ll have to speak up. I’m wearing a towel."
 ]
 |> Enum.each(
-  &Catalog.create_joke(%{
+  &Joke.insert(%{
     person_id: homer_id,
     content: &1
   })
@@ -36,7 +37,7 @@ alias Funny.Catalog
   "I brought you a tuna sandwich. They say it’s brain food. I guess because there’s so much dolphin in there."
 ]
 |> Enum.each(
-  &Catalog.create_joke(%{
+  &Joke.insert(%{
     person_id: marge_id,
     content: &1
   })

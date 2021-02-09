@@ -11,7 +11,6 @@ defmodule FunnyWeb.PersonView do
   end
 
   def render("person.json", %{person: person}) do
-    %{id: person.id,
-      name: person.name}
+    %{id: person.id, name: person.name, email: person.email, username: person.username}
   end
 end

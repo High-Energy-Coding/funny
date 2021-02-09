@@ -31,6 +31,10 @@ config :phoenix, :json_library, Jason
 # Tell material about Repo
 config :material, repo: Funny.Repo
 
+config :funny, Funny.Accounts.Guardian,
+  issuer: "funny",
+  secret_key: "g++gf/rmFG+z9cc3PXa8dPfJ001v2zU3skXLu5yr2YHNFF5RXWcZgsIKYzT72Jvp"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
