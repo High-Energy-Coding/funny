@@ -7,6 +7,7 @@ defmodule Funny.Catalog.Person do
 
   alias Argon2
   alias Funny.Catalog.Joke
+  alias Funny.Catalog.Family
 
   @type t :: %__MODULE__{}
 
@@ -20,6 +21,8 @@ defmodule Funny.Catalog.Person do
 
     has_many(:jokes, Joke)
 
+    belongs_to(:family, Family)
+
     timestamps()
   end
 
@@ -29,7 +32,7 @@ defmodule Funny.Catalog.Person do
   @doc false
   def changeset(person, attrs) do
     person
-    |> cast(attrs, [:name, :username, :password, :email])
+    |> cast(attrs, [:name, :username, :password, :email, :family_id])
     |> validate_required([:name])
     |> put_password_hash()
   end

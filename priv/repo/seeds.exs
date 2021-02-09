@@ -13,12 +13,42 @@
 #
 alias Funny.Catalog.Person
 alias Funny.Catalog.Joke
+alias Funny.Catalog.Family
 
-{:ok, %{id: homer_id}} = Person.insert(%{name: "Homer", username: "hsimpson", password: "1234"})
-{:ok, %{id: marge_id}} = Person.insert(%{name: "Marge"})
-{:ok, _} = Person.insert(%{name: "Bart"})
-{:ok, _} = Person.insert(%{name: "Lisa"})
-{:ok, _} = Person.insert(%{name: "Maggie"})
+{:ok, %{id: griffin_fam_id}} = Family.insert(%{name: "Griffin"})
+
+{:ok, %{id: peter_id}} =
+  Person.insert(%{
+    name: "Peter",
+    family_id: griffin_fam_id,
+    username: "pgriffin",
+    password: "1234"
+  })
+
+{:ok, %{id: simpsons_fam_id}} = Family.insert(%{name: "Simpsons"})
+
+{:ok, %{id: homer_id}} =
+  Person.insert(%{
+    name: "Homer",
+    family_id: simpsons_fam_id,
+    username: "hsimpson",
+    password: "1234"
+  })
+
+{:ok, %{id: marge_id}} = Person.insert(%{name: "Marge", family_id: simpsons_fam_id})
+{:ok, _} = Person.insert(%{name: "Bart", family_id: simpsons_fam_id})
+{:ok, _} = Person.insert(%{name: "Lisa", family_id: simpsons_fam_id})
+{:ok, _} = Person.insert(%{name: "Maggie", family_id: simpsons_fam_id})
+
+[
+  "You mean \"he\" is going into labor"
+]
+|> Enum.each(
+  &Joke.insert(%{
+    person_id: peter_id,
+    content: &1
+  })
+)
 
 [
   "Facts Are Meaningless. You Could Use Facts To Prove Anything That's Even Remotely True.",

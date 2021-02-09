@@ -3,12 +3,15 @@ defmodule FunnyWeb.JokeController do
 
   alias Funny.Catalog
   alias Funny.Catalog.Joke
+  alias Funny.Catalog.Person
   alias Funny.Context
 
   action_fallback FunnyWeb.FallbackController
 
   def index(conn, _params) do
-    case Catalog.list_jokes(%{with_person: true}, %Context{}) do
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+
+    case Catalog.list_jokes(%{with_person: true, family_id: family_id}, %Context{}) do
       {:ok, jokes} -> render(conn, "index.json", jokes: jokes)
     end
   end
