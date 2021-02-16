@@ -23,6 +23,11 @@ type Model
     | ThankYouScreen
     | ViewAllJokes RemoteJokes
     | SuccessDELETE
+    | SingleUserView String Jokes
+
+
+type alias Jokes =
+    List Joke
 
 
 type HomeModel
@@ -81,6 +86,7 @@ type Msg
     | ReturnToHome
     | UserClickedViewAllJokes
     | UserClickedNavigateHome
+    | UserClickedAPerson String
     | UserClickedTheDeleteButton String
     | ServerRespondedToJokeSubmission (Result Http.Error String)
     | ServerSentJokes (Result Http.Error (List Joke))
@@ -146,6 +152,19 @@ update msg model =
 
         ReturnToHome ->
             ( Home LoggedIn, Cmd.none )
+
+        UserClickedAPerson name ->
+            case model of
+                ViewAllJokes (Success jokes) ->
+                    let
+                        personsJokes =
+                            List.filter (\j -> name == jokesterToName j.jokester) jokes
+                    in
+                    ( SingleUserView name personsJokes, Cmd.none )
+
+                _ ->
+                    --ignore if we're not on the view all jokes screen
+                    ( model, Cmd.none )
 
         UserClickedViewAllJokes ->
             ( ViewAllJokes Loading, getAllRemoteJokes )
@@ -337,7 +356,7 @@ jokesterDecoder =
 
 view : Model -> Html Msg
 view model =
-    div [ class "body" ] <|
+    div [ class "main-container" ] <|
         List.singleton <|
             case model of
                 Home homeM ->
@@ -348,6 +367,9 @@ view model =
 
                 SelectJokester jokesters ->
                     selectJokestersView jokesters
+
+                SingleUserView name jokes ->
+                    jokesView "Back to Family Jokes" UserClickedViewAllJokes ("Jokes of " ++ name) jokes
 
                 SuccessDELETE ->
                     homeView
@@ -454,18 +476,18 @@ viewAllJokesView remoteJokes =
             text "WAITING FOR RESPONSE..."
 
         Success jokes ->
-            jokesView jokes
+            jokesView "Back Home" UserClickedNavigateHome "Jokes of the whole family" jokes
 
         Failure e ->
             text "ERROR OROROERJFKSDOJKLDSFJ LKDSFJ"
 
 
-jokesView : List Joke -> Html Msg
-jokesView jokes =
+jokesView : String -> Msg -> String -> List Joke -> Html Msg
+jokesView buttonCTA buttonNav title jokes =
     div [ class "full-width" ]
-        [ h1 [ class "previous-jokes" ] [ text "Previous Jokes." ]
+        [ h1 [ class "previous-jokes" ] [ text title ]
         , div [ class "jokes-view" ] <| List.map jokeView jokes
-        , button [ class "back-home", onClick UserClickedNavigateHome ] [ text "home" ]
+        , button [ class "back-home", onClick buttonNav ] [ text buttonCTA ]
         ]
 
 
@@ -473,14 +495,16 @@ jokeView : Joke -> Html Msg
 jokeView joke =
     div [ class "joke-view" ]
         [ span [ class "joke-content" ] [ text joke.content ]
-        , span [ class "joke-jokester" ] [ text <| jokesterToName joke.jokester ]
+        , span [ class "joke-jokester" ]
+            [ a [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ]
+                [ text <| jokesterToName joke.jokester ]
+            ]
         , button [ onClick (UserClickedTheDeleteButton joke.id) ] [ text "Delete" ]
         ]
 
 
-
--- 79cf607f-bf23-48a9-8564-370e4982553c
---(UserClickedTheDeleteButton (String.fromInt person.id))
+helper joke =
+    jokesterToName joke.jokester
 
 
 jokesterToName (Jokester name _) =
