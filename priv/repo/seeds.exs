@@ -14,7 +14,7 @@
 alias Funny.Catalog.Person
 alias Funny.Catalog.Joke
 
-{:ok, %{id: homer_id}} = Person.insert(%{name: "Homer"})
+{:ok, %{id: homer_id}} = Person.insert(%{name: "Homer", username: "hsimpson", password: "1234"})
 {:ok, %{id: marge_id}} = Person.insert(%{name: "Marge"})
 {:ok, _} = Person.insert(%{name: "Bart"})
 {:ok, _} = Person.insert(%{name: "Lisa"})
