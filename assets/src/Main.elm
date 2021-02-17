@@ -10,6 +10,7 @@ import Json.Encode as E
 import Process
 import RemoteData exposing (RemoteData(..), WebData)
 import Task
+import Typewriter
 
 
 
@@ -24,6 +25,7 @@ type Model
     | ViewAllJokes RemoteJokes
     | SuccessDELETE
     | SingleUserView String Jokes
+    | TypewriterTest Typewriter.Model
 
 
 type alias Jokes =
@@ -74,6 +76,11 @@ init =
     ( Home (LoggedOut "" ""), Cmd.none )
 
 
+theTyper =
+    Typewriter.withWords [ "one", "two", "three" ]
+        |> Typewriter.init
+
+
 
 ---- UPDATE ----
 
@@ -99,6 +106,8 @@ type Msg
     | ServerRespondedToLoginAttempt (Result Http.Error ())
     | UserClickedLogOut
     | NOOP
+    | UserClickedLoginButton
+    | ReceivedTypewriterMsg Typewriter.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -168,6 +177,26 @@ update msg model =
 
         UserClickedViewAllJokes ->
             ( ViewAllJokes Loading, getAllRemoteJokes )
+
+        UserClickedLoginButton ->
+            let
+                ( tWM, tWC ) =
+                    Typewriter.withWords [ "one", "two", "three" ]
+                        |> Typewriter.init
+            in
+            ( TypewriterTest tWM, Cmd.map ReceivedTypewriterMsg tWC )
+
+        ReceivedTypewriterMsg typewriterMessage ->
+            case model of
+                TypewriterTest oldTWM ->
+                    let
+                        ( newTWM, newTWC ) =
+                            Typewriter.update typewriterMessage oldTWM
+                    in
+                    ( TypewriterTest newTWM, Cmd.map ReceivedTypewriterMsg newTWC )
+
+                _ ->
+                    ( model, Cmd.none )
 
         UserClickedNavigateHome ->
             ( Home LoggedIn, Cmd.none )
@@ -362,6 +391,9 @@ view model =
                 Home homeM ->
                     loginInHomeView homeM
 
+                TypewriterTest tWM ->
+                    typeWriterTestView tWM
+
                 ViewAllJokes remoteJokes ->
                     viewAllJokesView remoteJokes
 
@@ -434,7 +466,7 @@ loginStatus hM =
                         ]
                         []
                     ]
-                , button [ onClick UserClickedLogin ] [ text "Sign in" ]
+                , button [ onClick UserClickedLoginButton ] [ text "Sign in" ]
                 ]
 
         LoginRequestSent _ _ ->
@@ -461,8 +493,15 @@ homeView =
             , br [] []
             , text "Funny Joke Today"
             ]
+        , text "Herrro"
         , button [ class "previous-jokes-button", onClick UserClickedViewAllJokes ] [ text "< previous jokes" ]
         , button [ class "write-it-down-button", onClick UserClickedLogJoke ] [ text "write it down >" ]
+        ]
+
+
+typeWriterTestView tWModel =
+    div [ class "full-width" ]
+        [ div [ class "" ] [ text <| Typewriter.view tWModel ]
         ]
 
 
