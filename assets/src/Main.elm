@@ -1,5 +1,17 @@
 module Main exposing (..)
 
+import Bootstrap.Button as Button
+import Bootstrap.CDN as CDN
+import Bootstrap.Form as Form
+import Bootstrap.Form.Checkbox as Checkbox
+import Bootstrap.Form.Fieldset as Fieldset
+import Bootstrap.Form.Input as Input
+import Bootstrap.Form.Radio as Radio
+import Bootstrap.Form.Select as Select
+import Bootstrap.Form.Textarea as Textarea
+import Bootstrap.Grid as Grid
+import Bootstrap.Grid.Col as Col
+import Bootstrap.Grid.Row as Row
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class, for, id, name, src, type_, value)
@@ -356,30 +368,27 @@ jokesterDecoder =
 
 view : Model -> Html Msg
 view model =
-    div [ class "main-container" ] <|
-        List.singleton <|
-            case model of
-                Home homeM ->
-                    loginInHomeView homeM
+    case model of
+        Home homeM ->
+            loginInHomeView homeM
 
-                ViewAllJokes remoteJokes ->
-                    viewAllJokesView remoteJokes
+        ViewAllJokes remoteJokes ->
+            viewAllJokesView remoteJokes
 
-                SelectJokester jokesters ->
-                    selectJokestersView jokesters
+        SelectJokester jokesters ->
+            selectJokestersView jokesters
 
-                SingleUserView name jokes ->
-                    jokesView "Back to Family Jokes" UserClickedViewAllJokes ("Jokes of " ++ name) jokes
+        SingleUserView name jokes ->
+            jokesView "Back to Family Jokes" UserClickedViewAllJokes ("Jokes of " ++ name) jokes
 
-                SuccessDELETE ->
-                    homeView
+        SuccessDELETE ->
+            homeView
 
-                WriteJoke writeJokeState ->
-                    writeJokeViewWrapper writeJokeState
+        WriteJoke writeJokeState ->
+            writeJokeViewWrapper writeJokeState
 
-                --writeJokeView jokester s
-                ThankYouScreen ->
-                    div [ class "full-width" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
+        ThankYouScreen ->
+            div [ class "" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
 
 
 writeJokeViewWrapper : WriteJokeState -> Html Msg
@@ -394,66 +403,79 @@ writeJokeViewWrapper writeJokeState =
 
 loginInHomeView : HomeModel -> Html Msg
 loginInHomeView hM =
-    div [ class "full-width home-view" ]
-        [ h1 [ class "h1" ]
-            [ text "Someone Had A"
-            , br [] []
-            , span [ class "very" ] [ text "Very" ]
-            , br [] []
-            , text "Funny Joke Today"
+    Grid.container []
+        [ CDN.stylesheet
+        , Grid.row [ Row.centerXs ]
+            [ Grid.col
+                [ Col.xsAuto ]
+                [ Grid.row [] [ titleColumn ]
+                , Grid.row [] [ loginStatusColumn hM ]
+                ]
             ]
-        , loginStatus hM
         ]
 
 
-loginStatus hM =
+titleColumn =
+    Grid.col []
+        [ Grid.row [ Row.centerXs ] [ Grid.col [ Col.xsAuto ] [ h1 [] [ text "Someone Had A" ] ] ]
+        , Grid.row [ Row.centerXs ] [ Grid.col [ Col.xsAuto ] [ h1 [] [ text "Very" ] ] ]
+        , Grid.row [ Row.centerXs ] [ Grid.col [ Col.xsAuto ] [ h1 [] [ text "Funny Joke Today" ] ] ]
+        ]
+
+
+loginPromptForReturningUser uT pT =
+    [ Form.form []
+        [ Form.group []
+            [ Form.label [ for "username" ] [ text "Username" ]
+            , Input.text
+                [ Input.id "username"
+                , Input.value uT
+                , Input.onInput UserTypingUsername
+                ]
+            ]
+        , Form.group []
+            [ Form.label [ for "mypwd" ] [ text "Password" ]
+            , Input.password
+                [ Input.id "mypwd"
+                , Input.value pT
+                , Input.onInput UserTypingPassword
+                ]
+            ]
+        , Button.button
+            [ Button.primary
+            , Button.onClick UserClickedLogin
+            ]
+            [ text "Sign in" ]
+        ]
+    ]
+
+
+loginStatusColumn hM =
     case hM of
         LoggedOut uT pT ->
-            div []
-                [ div []
-                    [ label [ for "username" ] [ text "Username:" ]
-                    , input
-                        [ id "username"
-                        , name "username"
-                        , type_ "text"
-                        , value uT
-                        , onInput UserTypingUsername
-                        ]
-                        []
-                    ]
-                , div []
-                    [ label [ for "pass" ] [ text "Password:" ]
-                    , input
-                        [ id "pass"
-                        , attribute "minlength" "4"
-                        , name "password"
-                        , attribute "required" ""
-                        , type_ "password"
-                        , value pT
-                        , onInput UserTypingPassword
-                        ]
-                        []
-                    ]
-                , button [ onClick UserClickedLogin ] [ text "Sign in" ]
-                ]
+            Grid.col [] <| loginPromptForReturningUser uT pT
 
         LoginRequestSent _ _ ->
-            text "LoginRequestSent"
+            Grid.col [] [ text "LoginRequestSent" ]
 
         LoggedIn ->
-            div []
-                [ button [ onClick UserClickedLogOut ] [ text "log out" ]
-                , button [ class "previous-jokes-button", onClick UserClickedViewAllJokes ] [ text "< previous jokes" ]
-                , button [ class "write-it-down-button", onClick UserClickedLogJoke ] [ text "write it down >" ]
+            Grid.col []
+                [ div []
+                    [ button [ onClick UserClickedLogOut ] [ text "log out" ]
+                    , button [ class "previous-jokes-button", onClick UserClickedViewAllJokes ] [ text "< previous jokes" ]
+                    , button [ class "write-it-down-button", onClick UserClickedLogJoke ] [ text "write it down >" ]
+                    ]
                 ]
 
         ErrorLoggingIn _ _ _ ->
-            text "error"
+            Grid.col []
+                [ text "error"
+                ]
 
 
 homeView : Html Msg
 homeView =
-    div [ class "full-width home-view" ]
+    div [ class " home-view" ]
         [ h1 [ class "h1" ]
             [ text "Someone Had A"
             , br [] []
@@ -484,7 +506,7 @@ viewAllJokesView remoteJokes =
 
 jokesView : String -> Msg -> String -> List Joke -> Html Msg
 jokesView buttonCTA buttonNav title jokes =
-    div [ class "full-width" ]
+    div [ class "" ]
         [ h1 [ class "previous-jokes" ] [ text title ]
         , div [ class "jokes-view" ] <| List.map jokeView jokes
         , button [ class "back-home", onClick buttonNav ] [ text buttonCTA ]
@@ -517,7 +539,7 @@ flip f y x =
 
 selectJokestersView : List Jokester -> Html Msg
 selectJokestersView jokesters =
-    div [ class "full-width" ]
+    div [ class "" ]
         [ h1 [] [ text "Who was HILARIOUS?" ]
         , div [ class "jokesters-select" ] <|
             List.map
