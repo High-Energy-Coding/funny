@@ -2,6 +2,8 @@ module Main exposing (..)
 
 import Bootstrap.Button as Button
 import Bootstrap.CDN as CDN
+import Bootstrap.Card as Card
+import Bootstrap.Card.Block as Block
 import Bootstrap.Form as Form
 import Bootstrap.Form.Checkbox as Checkbox
 import Bootstrap.Form.Fieldset as Fieldset
@@ -12,9 +14,11 @@ import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
+import Bootstrap.Text as Text
+import Bootstrap.Utilities.Spacing as Spacing
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, for, id, name, src, type_, value)
+import Html.Attributes exposing (attribute, class, for, id, name, src, style, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as D exposing (Decoder)
@@ -388,7 +392,7 @@ view model =
             writeJokeViewWrapper writeJokeState
 
         ThankYouScreen ->
-            div [ class "" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
+            div [ class "" ] [ h1 [] [ text "thanks for sharing 🤗" ] ]
 
 
 writeJokeViewWrapper : WriteJokeState -> Html Msg
@@ -506,8 +510,10 @@ viewAllJokesView remoteJokes =
 
 jokesView : String -> Msg -> String -> List Joke -> Html Msg
 jokesView buttonCTA buttonNav title jokes =
-    div [ class "" ]
-        [ h1 [ class "previous-jokes" ] [ text title ]
+    div
+        [ class "" ]
+        [ CDN.stylesheet
+        , h1 [ class "previous-jokes" ] [ text title ]
         , div [ class "jokes-view" ] <| List.map jokeView jokes
         , button [ class "back-home", onClick buttonNav ] [ text buttonCTA ]
         ]
@@ -515,14 +521,25 @@ jokesView buttonCTA buttonNav title jokes =
 
 jokeView : Joke -> Html Msg
 jokeView joke =
-    div [ class "joke-view" ]
-        [ span [ class "joke-content" ] [ text joke.content ]
-        , span [ class "joke-jokester" ]
-            [ a [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ]
-                [ text <| jokesterToName joke.jokester ]
+    Card.config [ Card.attrs [ style "width" "20rem" ] ]
+        |> Card.block []
+            [ Block.titleH4 [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ] [ text (jokesterToName joke.jokester) ]
+            , Block.text [] [ text joke.content ]
+            , Block.custom <|
+                Button.button [ Button.primary ] [ text "Go somewhere" ]
             ]
-        , button [ onClick (UserClickedTheDeleteButton joke.id) ] [ text "Delete" ]
-        ]
+        |> Card.view
+
+
+
+--    div [ class "joke-view" ]
+--        [ span [ class "joke-content" ] [ text joke.content ]
+--        , span [ class "joke-jokester" ]
+--            [ a [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ]
+--                [ text <| jokesterToName joke.jokester ]
+--            ]
+--        , button [ onClick (UserClickedTheDeleteButton joke.id) ] [ text "Delete" ]
+--        ]
 
 
 helper joke =
