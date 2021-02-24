@@ -2,6 +2,8 @@ module Main exposing (..)
 
 import Bootstrap.Button as Button
 import Bootstrap.CDN as CDN
+import Bootstrap.Card as Card
+import Bootstrap.Card.Block as Block
 import Bootstrap.Form as Form
 import Bootstrap.Form.Checkbox as Checkbox
 import Bootstrap.Form.Fieldset as Fieldset
@@ -12,9 +14,11 @@ import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
+import Bootstrap.Text as Text
+import Bootstrap.Utilities.Spacing as Spacing
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, for, id, name, src, type_, value)
+import Html.Attributes exposing (attribute, class, for, id, name, src, style, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as D exposing (Decoder)
@@ -103,7 +107,7 @@ type Msg
     | ServerRespondedToJokeSubmission (Result Http.Error String)
     | ServerSentJokes (Result Http.Error (List Joke))
     | ServerSentJokesters (Result Http.Error (List Jokester))
-    | DeleteUp (Result Http.Error ())
+    | DeleteUp (Result Http.Error String)
     | UserTypingUsername String
     | UserTypingPassword String
     | UserClickedLogin
@@ -194,7 +198,7 @@ update msg model =
             userSubmittedJokeUpdate model
 
         UserClickedTheDeleteButton ident ->
-            ( Home (LoggedOut "" ""), deleteTheAPI ident )
+            ( model, deleteTheAPI ident )
 
         ServerRespondedToJokeSubmission httpResult ->
             case httpResult of
@@ -221,12 +225,21 @@ update msg model =
                     ( ViewAllJokes <| Failure e, Cmd.none )
 
         DeleteUp test ->
-            case test of
-                Ok () ->
-                    ( ViewAllJokes Loading, getAllRemoteJokes )
+            case ( model, test ) of
+                ( ViewAllJokes rj, Ok deletedId ) ->
+                    case rj of
+                        Success jokes ->
+                            let
+                                updatedJokes =
+                                    List.filter (\x -> x.id /= deletedId) jokes
+                            in
+                            ( ViewAllJokes (Success updatedJokes), Cmd.none )
 
-                Err e ->
-                    ( ViewAllJokes <| Failure e, Cmd.none )
+                        _ ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         WriteJokeTypings s ->
             ( writeJokeUpdate s model, Cmd.none )
@@ -312,7 +325,7 @@ deleteTheAPI ident =
         , headers = []
         , url = "/api/jokes/" ++ ident
         , body = Http.emptyBody
-        , expect = Http.expectWhatever DeleteUp
+        , expect = Http.expectJson DeleteUp D.string
         , timeout = Nothing
         , tracker = Nothing
         }
@@ -415,6 +428,7 @@ loginInHomeView hM =
         ]
 
 
+titleColumn : Grid.Column Msg
 titleColumn =
     Grid.col []
         [ Grid.row [ Row.centerXs ] [ Grid.col [ Col.xsAuto ] [ h1 [] [ text "Someone Had A" ] ] ]
@@ -506,27 +520,35 @@ viewAllJokesView remoteJokes =
 
 jokesView : String -> Msg -> String -> List Joke -> Html Msg
 jokesView buttonCTA buttonNav title jokes =
-    div [ class "" ]
-        [ h1 [ class "previous-jokes" ] [ text title ]
-        , div [ class "jokes-view" ] <| List.map jokeView jokes
-        , button [ class "back-home", onClick buttonNav ] [ text buttonCTA ]
+    Grid.container []
+        [ CDN.stylesheet
+        , Grid.row [ Row.centerXs, rowSpacing Spacing.mt3 ] [ Grid.col [ Col.xsAuto ] [ h1 [ class "previous-jokes" ] [ text title ] ] ]
+        , Grid.row [ Row.centerXs ]
+            [ Grid.col [ Col.xsAuto ] <| List.map jokeView jokes ]
+        , Grid.row [ Row.centerXs, rowSpacing Spacing.mt5 ]
+            [ Grid.col [ Col.xsAuto ] [ Button.button [ Button.outlinePrimary, Button.onClick buttonNav ] [ text buttonCTA ] ]
+            ]
         ]
+
+
+rowSpacing space =
+    Row.attrs [ space ]
 
 
 jokeView : Joke -> Html Msg
 jokeView joke =
-    div [ class "joke-view" ]
-        [ span [ class "joke-content" ] [ text joke.content ]
-        , span [ class "joke-jokester" ]
-            [ a [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ]
-                [ text <| jokesterToName joke.jokester ]
+    Card.config [ Card.attrs [ style "width" "20rem", Spacing.mt3 ] ]
+        |> Card.block []
+            [ Block.titleH4
+                [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ]
+                [ text (jokesterToName joke.jokester) ]
+            , Block.text [] [ text joke.content ]
+            , Block.custom <|
+                Button.button
+                    [ Button.outlineDanger, Button.onClick (UserClickedTheDeleteButton joke.id) ]
+                    [ text "Delete" ]
             ]
-        , button [ onClick (UserClickedTheDeleteButton joke.id) ] [ text "Delete" ]
-        ]
-
-
-helper joke =
-    jokesterToName joke.jokester
+        |> Card.view
 
 
 jokesterToName (Jokester name _) =
