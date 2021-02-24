@@ -392,7 +392,7 @@ view model =
             writeJokeViewWrapper writeJokeState
 
         ThankYouScreen ->
-            div [ class "" ] [ h1 [] [ text "thanks for sharing 🤗" ] ]
+            div [ class "" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
 
 
 writeJokeViewWrapper : WriteJokeState -> Html Msg
@@ -419,6 +419,7 @@ loginInHomeView hM =
         ]
 
 
+titleColumn : Grid.Column Msg
 titleColumn =
     Grid.col []
         [ Grid.row [ Row.centerXs ] [ Grid.col [ Col.xsAuto ] [ h1 [] [ text "Someone Had A" ] ] ]
@@ -510,23 +511,27 @@ viewAllJokesView remoteJokes =
 
 jokesView : String -> Msg -> String -> List Joke -> Html Msg
 jokesView buttonCTA buttonNav title jokes =
-    div
-        [ class "" ]
+    Grid.container []
         [ CDN.stylesheet
-        , h1 [ class "previous-jokes" ] [ text title ]
-        , div [ class "jokes-view" ] <| List.map jokeView jokes
-        , button [ class "back-home", onClick buttonNav ] [ text buttonCTA ]
+        , Grid.row [ Row.centerXs, rowSpacing Spacing.mt3 ] [ Grid.col [ Col.xsAuto ] [ h1 [ class "previous-jokes" ] [ text title ] ] ]
+        , Grid.row [ Row.centerXs ]
+            [ Grid.col [ Col.xsAuto ] <| List.map jokeView jokes ]
+        , Grid.row [ Row.centerXs, rowSpacing Spacing.mt5 ]
+            [ Grid.col [ Col.xsAuto ] [ Button.button [ Button.outlinePrimary, Button.onClick buttonNav ] [ text buttonCTA ] ]
+            ]
         ]
+
+
+rowSpacing space =
+    Row.attrs [ space ]
 
 
 jokeView : Joke -> Html Msg
 jokeView joke =
-    Card.config [ Card.attrs [ style "width" "20rem" ] ]
+    Card.config [ Card.attrs [ style "width" "20rem", Spacing.mt3 ] ]
         |> Card.block []
             [ Block.titleH4 [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ] [ text (jokesterToName joke.jokester) ]
             , Block.text [] [ text joke.content ]
-            , Block.custom <|
-                Button.button [ Button.primary ] [ text "Go somewhere" ]
             ]
         |> Card.view
 
