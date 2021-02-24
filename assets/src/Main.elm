@@ -107,7 +107,7 @@ type Msg
     | ServerRespondedToJokeSubmission (Result Http.Error String)
     | ServerSentJokes (Result Http.Error (List Joke))
     | ServerSentJokesters (Result Http.Error (List Jokester))
-    | DeleteUp (Result Http.Error ())
+    | DeleteUp (Result Http.Error String)
     | UserTypingUsername String
     | UserTypingPassword String
     | UserClickedLogin
@@ -198,7 +198,7 @@ update msg model =
             userSubmittedJokeUpdate model
 
         UserClickedTheDeleteButton ident ->
-            ( Home (LoggedOut "" ""), deleteTheAPI ident )
+            ( model, deleteTheAPI ident )
 
         ServerRespondedToJokeSubmission httpResult ->
             case httpResult of
@@ -225,12 +225,21 @@ update msg model =
                     ( ViewAllJokes <| Failure e, Cmd.none )
 
         DeleteUp test ->
-            case test of
-                Ok () ->
-                    ( ViewAllJokes Loading, getAllRemoteJokes )
+            case ( model, test ) of
+                ( ViewAllJokes rj, Ok deletedId ) ->
+                    case rj of
+                        Success jokes ->
+                            let
+                                updatedJokes =
+                                    List.filter (\x -> x.id /= deletedId) jokes
+                            in
+                            ( ViewAllJokes (Success updatedJokes), Cmd.none )
 
-                Err e ->
-                    ( ViewAllJokes <| Failure e, Cmd.none )
+                        _ ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         WriteJokeTypings s ->
             ( writeJokeUpdate s model, Cmd.none )
@@ -316,7 +325,7 @@ deleteTheAPI ident =
         , headers = []
         , url = "/api/jokes/" ++ ident
         , body = Http.emptyBody
-        , expect = Http.expectWhatever DeleteUp
+        , expect = Http.expectJson DeleteUp D.string
         , timeout = Nothing
         , tracker = Nothing
         }

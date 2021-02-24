@@ -31,7 +31,7 @@ defmodule FunnyWeb.JokeController do
 
   def delete(conn, %{"id" => id}) do
     case Catalog.delete_joke(%{id: id}, %Context{}) do
-      {:ok, _} -> send_resp(conn, :no_content, "")
+      {:ok, _} -> json(conn, id)
       {:error, _} -> render(conn, "poop.json")
     end
   end
