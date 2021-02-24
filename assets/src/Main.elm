@@ -530,25 +530,16 @@ jokeView : Joke -> Html Msg
 jokeView joke =
     Card.config [ Card.attrs [ style "width" "20rem", Spacing.mt3 ] ]
         |> Card.block []
-            [ Block.titleH4 [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ] [ text (jokesterToName joke.jokester) ]
+            [ Block.titleH4
+                [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ]
+                [ text (jokesterToName joke.jokester) ]
             , Block.text [] [ text joke.content ]
+            , Block.custom <|
+                Button.button
+                    [ Button.outlineDanger, Button.onClick (UserClickedTheDeleteButton joke.id) ]
+                    [ text "Delete" ]
             ]
         |> Card.view
-
-
-
---    div [ class "joke-view" ]
---        [ span [ class "joke-content" ] [ text joke.content ]
---        , span [ class "joke-jokester" ]
---            [ a [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ]
---                [ text <| jokesterToName joke.jokester ]
---            ]
---        , button [ onClick (UserClickedTheDeleteButton joke.id) ] [ text "Delete" ]
---        ]
-
-
-helper joke =
-    jokesterToName joke.jokester
 
 
 jokesterToName (Jokester name _) =
