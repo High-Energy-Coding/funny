@@ -1,13 +1,7 @@
-defmodule Funny.Catalog.JokeQueryBuilder do
+defmodule Funny.Catalog.PersonQueryBuilder do
   use Material.QueryBuilder
 
   import Ecto.Query, only: [from: 2, has_named_binding?: 2]
-
-  def build_query(query, :with_person, true, _context) do
-    query = ensure_person_joined(query)
-
-    from(query, preload: [:person])
-  end
 
   def build_query(query, :family_id, family_id, _context) do
     query =
@@ -18,14 +12,6 @@ defmodule Funny.Catalog.JokeQueryBuilder do
       where: f.id == ^family_id,
       preload: [:person]
     )
-  end
-
-  defp ensure_person_joined(query) do
-    if has_named_binding?(query, :person) do
-      query
-    else
-      from(j in query, join: p in assoc(j, :person))
-    end
   end
 
   defp ensure_assoc_joined(query, :person) do

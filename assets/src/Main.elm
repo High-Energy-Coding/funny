@@ -269,7 +269,7 @@ userSubmittedJokeUpdate : Model -> ( Model, Cmd Msg )
 userSubmittedJokeUpdate model =
     case model of
         WriteJoke (TypingOutJoke jokester "") ->
-            ( Home (LoggedOut "" ""), Cmd.none )
+            ( Home LoggedIn, Cmd.none )
 
         WriteJoke (TypingOutJoke jokester typings) ->
             ( WriteJoke (SavingJoke jokester typings), mkJoke typings "" jokester |> postNewJoke )
