@@ -15,7 +15,8 @@
 
   <body>
 
-    <%= if Application.get_env(:code_names, :envy) == :prod do %>
+    <%= if Application.get_env(:funny, :envy) == :prod do %>
+      <div id="root"></div>
       <script type="text/javascript" src="/js/app.js"></script>
     <% else %>
       <div id="root"></div>
