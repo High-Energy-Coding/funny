@@ -77,6 +77,6 @@ RUN apk add --no-cache \
 
 FROM runner-base as actual-runner
 COPY  --from=releaser-funny-web /app/_build/prod/rel/demo /app
-EXPOSE 4000
+EXPOSE 80
 ENTRYPOINT ["/app/bin/demo"]
 CMD ["start"]
