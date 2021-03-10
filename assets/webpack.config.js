@@ -10,7 +10,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 var MODE =
-    process.env.npm_lifecycle_event === "prod" ? "production" : "development";
+    process.env.npm_lifecycle_event === "build" ? "production" : "development";
 var withDebug = !process.env["npm_config_nodebug"] && MODE == "development";
 console.log( process.env.npm_lifecycle_event );
 console.log('\x1b[36m%s\x1b[0m', `** elm-webpack-starter: mode "${MODE}", withDebug: ${withDebug}\n`);
@@ -40,6 +40,38 @@ var common = {
     },
     module: {
         rules: [
+        ]
+    }
+};
+
+if (MODE === "development") {
+    module.exports = merge(common, {
+        plugins: [
+            // Suggested for hot-loading
+            new webpack.NamedModulesPlugin(),
+            // Prevents compilation errors causing the hot loader to lose state
+            new webpack.NoEmitOnErrorsPlugin()
+        ],
+        module: {
+            rules: [
+                {
+                    test: /\.elm$/,
+                    exclude: [/elm-stuff/, /node_modules/],
+                    use: [
+                        { loader: "elm-hot-webpack-loader" },
+                        {
+                            loader: "elm-webpack-loader",
+                            options: {
+                                // add Elm's debug overlay to output
+                                debug: withDebug,
+                                //
+                                forceWatch: true
+                            }
+                        }
+                    ]
+            },
+
+
             {
                 test: /\.js$/,
                 exclude: /node_modules/,
@@ -77,36 +109,7 @@ var common = {
                 exclude: [/elm-stuff/, /node_modules/],
                 loader: "file-loader"
             }
-        ]
-    }
-};
 
-if (MODE === "development") {
-    module.exports = merge(common, {
-        plugins: [
-            // Suggested for hot-loading
-            new webpack.NamedModulesPlugin(),
-            // Prevents compilation errors causing the hot loader to lose state
-            new webpack.NoEmitOnErrorsPlugin()
-        ],
-        module: {
-            rules: [
-                {
-                    test: /\.elm$/,
-                    exclude: [/elm-stuff/, /node_modules/],
-                    use: [
-                        { loader: "elm-hot-webpack-loader" },
-                        {
-                            loader: "elm-webpack-loader",
-                            options: {
-                                // add Elm's debug overlay to output
-                                debug: withDebug,
-                                //
-                                forceWatch: true
-                            }
-                        }
-                    ]
-                }
             ]
         },
         devServer: {
@@ -124,15 +127,15 @@ if (MODE === "production") {
     module.exports = merge(common, {
         optimization: {
              minimizer: [
-               new ClosurePlugin({mode: 'STANDARD'}, {
-                 // compiler flags here
-                 //
-                 // for debugging help, try these:
-                 //
-                 // formatting: 'PRETTY_PRINT',
-                 // debug: true
-                 // renaming: false
-               })
+               // new ClosurePlugin({mode: 'STANDARD', platform: 'native'}, {
+               //   // compiler flags here
+               //   //
+               //   // for debugging help, try these:
+               //   //
+               //   // formatting: 'PRETTY_PRINT',
+               //   // debug: true
+               //   // renaming: false
+               // })
              ]
           }, 
         plugins: [
@@ -146,7 +149,7 @@ if (MODE === "production") {
             // Copy static assets
             new CopyWebpackPlugin([
                 {
-                    from: "src/assets"
+                    from: "public"
                 }
             ]),
             new MiniCssExtractPlugin({
@@ -164,7 +167,7 @@ if (MODE === "production") {
                         loader: "elm-webpack-loader",
                         options: {
                             optimize: true,
-                            pathToElm: 'node_modules/.bin/elm'
+                            pathToElm: 'node_modules/.bin/elm',
                         }
                     }
                 },
