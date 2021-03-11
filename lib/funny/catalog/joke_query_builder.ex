@@ -3,6 +3,10 @@ defmodule Funny.Catalog.JokeQueryBuilder do
 
   import Ecto.Query, only: [from: 2, has_named_binding?: 2]
 
+  def build_query(query, :latest_first, true, _context) do
+    from(j in query, order_by: [desc: j.inserted_at])
+  end
+
   def build_query(query, :with_person, true, _context) do
     query = ensure_person_joined(query)
 

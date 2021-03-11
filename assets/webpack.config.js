@@ -20,7 +20,6 @@ var common = {
     entry: "./src/index.js",
     output: {
         path: path.resolve(__dirname, '../priv/static/js'),
-        //path: path.join(__dirname, "dist"),
         publicPath: MODE == "production" ? "/" : "http://localhost:3000/",
         // FIXME webpack -p automatically adds hash when building for production
         //filename: MODE == "production" ? "[name]-[hash].js" : "index.js"

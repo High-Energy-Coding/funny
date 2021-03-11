@@ -59,8 +59,7 @@ RUN --mount=type=secret,id=npmrc,dst=/app/.npmrc npm run build
 FROM deps as releaser-base
 COPY . /app/
 RUN mix compile --force 
-COPY --from=frontend /priv/static /priv/static
-COPY /priv/static apps/priv/static
+COPY --from=frontend /priv/static /app/priv/static
 RUN mix phx.digest
 COPY rel/config.exs app/rel/config.exs
 
@@ -70,11 +69,11 @@ RUN mix release --overwrite
 
 ################################################
 FROM alpine:3.11 as runner-base
-
 RUN apk add --no-cache \
     ncurses \
     ncurses-dev 
 
+################################################
 FROM runner-base as actual-runner
 COPY  --from=releaser-funny-web /app/_build/prod/rel/demo /app
 EXPOSE 80
