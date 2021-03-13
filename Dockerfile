@@ -59,6 +59,7 @@ RUN --mount=type=secret,id=npmrc,dst=/app/.npmrc npm run build
 FROM deps as releaser-base
 COPY . /app/
 RUN mix compile --force 
+COPY --from=frontend /app/public /app/priv/static
 COPY --from=frontend /priv/static /app/priv/static
 RUN mix phx.digest
 COPY rel/config.exs app/rel/config.exs

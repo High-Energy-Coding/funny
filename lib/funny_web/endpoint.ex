@@ -23,8 +23,10 @@ defmodule FunnyWeb.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :funny,
-    gzip: false,
-    only: ~w(css fonts images js favicon.ico robots.txt)
+    gzip: true
+
+  # load all the fuckers in priv/static
+  # only: ~w(public favicon.ico manifest.json service-worker.js)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
