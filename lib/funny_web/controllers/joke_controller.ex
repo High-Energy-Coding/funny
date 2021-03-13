@@ -11,7 +11,10 @@ defmodule FunnyWeb.JokeController do
   def index(conn, _params) do
     %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
 
-    case Catalog.list_jokes(%{with_person: true, family_id: family_id}, %Context{}) do
+    case Catalog.list_jokes(
+           %{with_person: true, family_id: family_id, latest_first: true},
+           %Context{}
+         ) do
       {:ok, jokes} -> render(conn, "index.json", jokes: jokes)
     end
   end

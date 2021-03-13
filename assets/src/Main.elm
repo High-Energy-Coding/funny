@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Bootstrap.Button as Button
-import Bootstrap.CDN as CDN
 import Bootstrap.Card as Card
 import Bootstrap.Card.Block as Block
 import Bootstrap.Form as Form
@@ -14,6 +13,9 @@ import Bootstrap.Form.Textarea as Textarea
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
+import Bootstrap.ListGroup as ListGroup
+import Bootstrap.Navbar as Navbar
+import Bootstrap.Spinner as Spinner
 import Bootstrap.Text as Text
 import Bootstrap.Utilities.Spacing as Spacing
 import Browser
@@ -33,20 +35,23 @@ import Task
 
 
 type Model
-    = Home HomeModel
-    | SelectJokester (List Jokester)
-    | WriteJoke WriteJokeState
-    | ThankYouScreen
-    | ViewAllJokes RemoteJokes
-    | SuccessDELETE
-    | SingleUserView String Jokes
+    = Home LoginActionState Navbar.State
+    | SelectJokester (List Jokester) Navbar.State
+    | WriteJoke WriteJokeState Navbar.State
+    | ThankYouScreen Navbar.State
+    | ViewingJokes ViewingJokesState Navbar.State
+
+
+type ViewingJokesState
+    = ViewAllJokes RemoteJokes
+    | ViewPersonJokes String Jokes
 
 
 type alias Jokes =
     List Joke
 
 
-type HomeModel
+type LoginActionState
     = LoggedOut UsernameTypings PasswordTypings
     | LoginRequestSent UsernameTypings PasswordTypings
     | LoggedIn
@@ -87,7 +92,11 @@ type Jokester
 
 init : ( Model, Cmd Msg )
 init =
-    ( Home (LoggedOut "" ""), Cmd.none )
+    let
+        ( navbarState, navbarCmd ) =
+            Navbar.initialState NavbarMsg
+    in
+    ( Home (LoggedOut "" "") navbarState, navbarCmd )
 
 
 
@@ -114,6 +123,7 @@ type Msg
     | ServerRespondedToLogoutAttempt (Result Http.Error ())
     | ServerRespondedToLoginAttempt (Result Http.Error ())
     | UserClickedLogOut
+    | NavbarMsg Navbar.State
     | NOOP
 
 
@@ -123,76 +133,89 @@ update msg model =
         NOOP ->
             ( model, Cmd.none )
 
+        NavbarMsg newNavState ->
+            ( handleNewNavbarState model newNavState, Cmd.none )
+
         UserClickedLogOut ->
             ( model, sendLogoutAttempt )
 
         UserTypingPassword str ->
             case model of
-                Home (LoggedOut uT pT) ->
-                    ( Home (LoggedOut uT str), Cmd.none )
+                Home (LoggedOut uT pT) navState ->
+                    ( Home (LoggedOut uT str) navState, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
         UserTypingUsername str ->
             case model of
-                Home (LoggedOut uT pT) ->
-                    ( Home (LoggedOut str pT), Cmd.none )
+                Home (LoggedOut uT pT) navState ->
+                    ( Home (LoggedOut str pT) navState, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
         UserClickedLogin ->
             case model of
-                Home (LoggedOut uT pT) ->
-                    ( Home (LoginRequestSent uT pT), sendLoginAttempt uT pT )
+                Home (LoggedOut uT pT) navState ->
+                    ( Home (LoginRequestSent uT pT) navState, sendLoginAttempt uT pT )
 
                 _ ->
                     ( model, Cmd.none )
 
         ServerRespondedToLogoutAttempt resp ->
-            case resp of
-                Ok _ ->
-                    ( Home (LoggedOut "" ""), Cmd.none )
+            case model of
+                Home _ navState ->
+                    case resp of
+                        Ok _ ->
+                            ( Home (LoggedOut "" "") navState, Cmd.none )
 
-                Err e ->
-                    ( Home (ErrorLoggingIn "woops" "" ""), Cmd.none )
+                        Err e ->
+                            ( Home (ErrorLoggingIn "woops" "" "") navState, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ServerRespondedToLoginAttempt resp ->
-            case resp of
-                Ok _ ->
-                    ( Home LoggedIn, Cmd.none )
+            case model of
+                Home _ navState ->
+                    case resp of
+                        Ok _ ->
+                            ( Home LoggedIn navState, Cmd.none )
 
-                Err e ->
-                    ( Home (ErrorLoggingIn "woops" "" ""), Cmd.none )
+                        Err e ->
+                            ( Home (ErrorLoggingIn "woops" "" "") navState, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ReturnToHome ->
-            ( Home LoggedIn, Cmd.none )
+            ( Home LoggedIn (getNavStateFromModel model), Cmd.none )
 
         UserClickedAPerson name ->
             case model of
-                ViewAllJokes (Success jokes) ->
+                ViewingJokes (ViewAllJokes (Success jokes)) navState ->
                     let
                         personsJokes =
                             List.filter (\j -> name == jokesterToName j.jokester) jokes
                     in
-                    ( SingleUserView name personsJokes, Cmd.none )
+                    ( ViewingJokes (ViewPersonJokes name personsJokes) navState, Cmd.none )
 
                 _ ->
                     --ignore if we're not on the view all jokes screen
                     ( model, Cmd.none )
 
         UserClickedViewAllJokes ->
-            ( ViewAllJokes Loading, getAllRemoteJokes )
+            ( ViewingJokes (ViewAllJokes Loading) (getNavStateFromModel model), getAllRemoteJokes )
 
         UserClickedNavigateHome ->
-            ( Home LoggedIn, Cmd.none )
+            ( Home LoggedIn (getNavStateFromModel model), Cmd.none )
 
         UserClickedLogJoke ->
-            ( Home LoggedIn, getAllRemoteJokesters )
+            ( Home LoggedIn (getNavStateFromModel model), getAllRemoteJokesters )
 
         UserSelectedJokester jokester ->
-            ( WriteJoke (TypingOutJoke jokester ""), Cmd.none )
+            ( WriteJoke (TypingOutJoke jokester "") (getNavStateFromModel model), Cmd.none )
 
         UserClickedSubmitJoke ->
             userSubmittedJokeUpdate model
@@ -203,7 +226,7 @@ update msg model =
         ServerRespondedToJokeSubmission httpResult ->
             case httpResult of
                 Ok status ->
-                    ( ThankYouScreen, scheduleReturnToHome )
+                    ( ThankYouScreen (getNavStateFromModel model), scheduleReturnToHome )
 
                 Err e ->
                     ( model, Cmd.none )
@@ -211,7 +234,7 @@ update msg model =
         ServerSentJokesters httpResult ->
             case httpResult of
                 Ok jokesters ->
-                    ( SelectJokester jokesters, Cmd.none )
+                    ( SelectJokester jokesters (getNavStateFromModel model), Cmd.none )
 
                 Err e ->
                     ( model, Cmd.none )
@@ -219,21 +242,21 @@ update msg model =
         ServerSentJokes httpResult ->
             case httpResult of
                 Ok jokes ->
-                    ( ViewAllJokes (Success jokes), Cmd.none )
+                    ( ViewingJokes (ViewAllJokes (Success jokes)) (getNavStateFromModel model), Cmd.none )
 
                 Err e ->
-                    ( ViewAllJokes <| Failure e, Cmd.none )
+                    ( ViewingJokes (ViewAllJokes (Failure e)) (getNavStateFromModel model), Cmd.none )
 
         DeleteUp test ->
             case ( model, test ) of
-                ( ViewAllJokes rj, Ok deletedId ) ->
+                ( ViewingJokes (ViewAllJokes rj) navState, Ok deletedId ) ->
                     case rj of
                         Success jokes ->
                             let
                                 updatedJokes =
                                     List.filter (\x -> x.id /= deletedId) jokes
                             in
-                            ( ViewAllJokes (Success updatedJokes), Cmd.none )
+                            ( ViewingJokes (ViewAllJokes (Success updatedJokes)) navState, Cmd.none )
 
                         _ ->
                             ( model, Cmd.none )
@@ -243,6 +266,42 @@ update msg model =
 
         WriteJokeTypings s ->
             ( writeJokeUpdate s model, Cmd.none )
+
+
+handleNewNavbarState model newNavState =
+    case model of
+        Home loginState _ ->
+            Home loginState newNavState
+
+        SelectJokester sJState _ ->
+            SelectJokester sJState newNavState
+
+        WriteJoke wJState _ ->
+            WriteJoke wJState newNavState
+
+        ThankYouScreen _ ->
+            ThankYouScreen newNavState
+
+        ViewingJokes vJState _ ->
+            ViewingJokes vJState newNavState
+
+
+getNavStateFromModel model =
+    case model of
+        Home _ navState ->
+            navState
+
+        SelectJokester sJState navState ->
+            navState
+
+        WriteJoke wJState navState ->
+            navState
+
+        ThankYouScreen navState ->
+            navState
+
+        ViewingJokes vJState navState ->
+            navState
 
 
 sendLogoutAttempt =
@@ -268,11 +327,11 @@ sendLoginAttempt username passwd =
 userSubmittedJokeUpdate : Model -> ( Model, Cmd Msg )
 userSubmittedJokeUpdate model =
     case model of
-        WriteJoke (TypingOutJoke jokester "") ->
-            ( Home LoggedIn, Cmd.none )
+        WriteJoke (TypingOutJoke jokester "") navState ->
+            ( Home LoggedIn navState, Cmd.none )
 
-        WriteJoke (TypingOutJoke jokester typings) ->
-            ( WriteJoke (SavingJoke jokester typings), mkJoke typings "" jokester |> postNewJoke )
+        WriteJoke (TypingOutJoke jokester typings) navState ->
+            ( WriteJoke (SavingJoke jokester typings) navState, mkJoke typings "" jokester |> postNewJoke )
 
         _ ->
             ( model, Cmd.none )
@@ -281,8 +340,8 @@ userSubmittedJokeUpdate model =
 writeJokeUpdate : String -> Model -> Model
 writeJokeUpdate newTypings model =
     case model of
-        WriteJoke (TypingOutJoke jokester oldTypings) ->
-            WriteJoke (TypingOutJoke jokester newTypings)
+        WriteJoke (TypingOutJoke jokester oldTypings) navState ->
+            WriteJoke (TypingOutJoke jokester newTypings) navState
 
         _ ->
             model
@@ -290,7 +349,7 @@ writeJokeUpdate newTypings model =
 
 scheduleReturnToHome : Cmd Msg
 scheduleReturnToHome =
-    Task.perform (always ReturnToHome) <| Process.sleep 2400
+    Task.perform (always ReturnToHome) <| Process.sleep 1000
 
 
 getAllRemoteJokesters : Cmd Msg
@@ -381,27 +440,44 @@ jokesterDecoder =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Home homeM ->
-            loginInHomeView homeM
+    let
+        body =
+            case model of
+                Home homeM navState ->
+                    loginInHomeView homeM
 
-        ViewAllJokes remoteJokes ->
-            viewAllJokesView remoteJokes
+                ViewingJokes state navState ->
+                    case state of
+                        ViewAllJokes remoteJokes ->
+                            viewAllJokesView remoteJokes
 
-        SelectJokester jokesters ->
-            selectJokestersView jokesters
+                        ViewPersonJokes name jokes ->
+                            jokesView "Back to Family Jokes" UserClickedViewAllJokes ("Jokes of " ++ name) jokes
 
-        SingleUserView name jokes ->
-            jokesView "Back to Family Jokes" UserClickedViewAllJokes ("Jokes of " ++ name) jokes
+                SelectJokester jokesters navState ->
+                    selectJokestersView jokesters
 
-        SuccessDELETE ->
-            homeView
+                WriteJoke writeJokeState navState ->
+                    writeJokeViewWrapper writeJokeState
 
-        WriteJoke writeJokeState ->
-            writeJokeViewWrapper writeJokeState
+                ThankYouScreen navState ->
+                    div [ class "" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
+    in
+    div []
+        [ navBarView model
+        , body
+        ]
 
-        ThankYouScreen ->
-            div [ class "" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
+
+navBarView model =
+    Navbar.config NavbarMsg
+        |> Navbar.withAnimation
+        |> Navbar.brand [ style "cursor" "pointer", onClick UserClickedNavigateHome ] [ text "Funny App" ]
+        |> Navbar.items
+            [ Navbar.itemLink [] [ text "Item 1" ]
+            , Navbar.itemLink [] [ text "Item 2" ]
+            ]
+        |> Navbar.view (getNavStateFromModel model)
 
 
 writeJokeViewWrapper : WriteJokeState -> Html Msg
@@ -414,14 +490,13 @@ writeJokeViewWrapper writeJokeState =
             writeJokeView jokester s
 
 
-loginInHomeView : HomeModel -> Html Msg
+loginInHomeView : LoginActionState -> Html Msg
 loginInHomeView hM =
     Grid.container []
-        [ CDN.stylesheet
-        , Grid.row [ Row.centerXs ]
+        [ Grid.row [ Row.centerXs ]
             [ Grid.col
                 [ Col.xsAuto ]
-                [ Grid.row [] [ titleColumn ]
+                [ Grid.row [ rowSpacing Spacing.mt4, rowSpacing Spacing.mb5 ] [ titleColumn ]
                 , Grid.row [] [ loginStatusColumn hM ]
                 ]
             ]
@@ -474,11 +549,15 @@ loginStatusColumn hM =
 
         LoggedIn ->
             Grid.col []
-                [ div []
-                    [ button [ onClick UserClickedLogOut ] [ text "log out" ]
-                    , button [ class "previous-jokes-button", onClick UserClickedViewAllJokes ] [ text "< previous jokes" ]
-                    , button [ class "write-it-down-button", onClick UserClickedLogJoke ] [ text "write it down >" ]
+                [ Button.button
+                    [ Button.secondary
+                    , Button.block
+                    , Button.onClick UserClickedViewAllJokes
                     ]
+                    [ text "< previous jokes" ]
+                , Button.button
+                    [ Button.primary, Button.large, Button.block, Button.onClick UserClickedLogJoke ]
+                    [ text "write it down >" ]
                 ]
 
         ErrorLoggingIn _ _ _ ->
@@ -487,47 +566,37 @@ loginStatusColumn hM =
                 ]
 
 
-homeView : Html Msg
-homeView =
-    div [ class " home-view" ]
-        [ h1 [ class "h1" ]
-            [ text "Someone Had A"
-            , br [] []
-            , span [ class "very" ] [ text "Very" ]
-            , br [] []
-            , text "Funny Joke Today"
-            ]
-        , button [ class "previous-jokes-button", onClick UserClickedViewAllJokes ] [ text "< previous jokes" ]
-        , button [ class "write-it-down-button", onClick UserClickedLogJoke ] [ text "write it down >" ]
-        ]
-
-
 viewAllJokesView : RemoteJokes -> Html Msg
 viewAllJokesView remoteJokes =
     case remoteJokes of
-        NotAsked ->
-            text "WAITING FOR RESPONSE..."
-
         Loading ->
-            text "WAITING FOR RESPONSE..."
+            let
+                customStyles =
+                    [ style "width" "5rem", style "height" "5rem" ]
+            in
+            Grid.container []
+                [ Grid.row [ Row.centerXs, rowSpacing Spacing.mt5 ]
+                    [ Grid.col [ Col.xsAuto ] [ Spinner.spinner [ Spinner.attrs customStyles ] [] ]
+                    ]
+                ]
 
         Success jokes ->
             jokesView "Back Home" UserClickedNavigateHome "Jokes of the whole family" jokes
 
-        Failure e ->
+        _ ->
             text "ERROR OROROERJFKSDOJKLDSFJ LKDSFJ"
 
 
 jokesView : String -> Msg -> String -> List Joke -> Html Msg
 jokesView buttonCTA buttonNav title jokes =
     Grid.container []
-        [ CDN.stylesheet
-        , Grid.row [ Row.centerXs, rowSpacing Spacing.mt3 ] [ Grid.col [ Col.xsAuto ] [ h1 [ class "previous-jokes" ] [ text title ] ] ]
+        [ Grid.row
+            [ Row.centerXs, rowSpacing Spacing.mt3 ]
+            [ Grid.col [ Col.xsAuto ] [ h3 [] [ text title ] ] ]
         , Grid.row [ Row.centerXs ]
             [ Grid.col [ Col.xsAuto ] <| List.map jokeView jokes ]
         , Grid.row [ Row.centerXs, rowSpacing Spacing.mt5 ]
-            [ Grid.col [ Col.xsAuto ] [ Button.button [ Button.outlinePrimary, Button.onClick buttonNav ] [ text buttonCTA ] ]
-            ]
+            [ Grid.col [ Col.xsAuto ] [ Button.button [ Button.outlinePrimary, Button.onClick buttonNav ] [ text buttonCTA ] ] ]
         ]
 
 
@@ -563,18 +632,19 @@ selectJokestersView : List Jokester -> Html Msg
 selectJokestersView jokesters =
     div [ class "" ]
         [ h1 [] [ text "Who was HILARIOUS?" ]
-        , div [ class "jokesters-select" ] <|
-            List.map
+        , ListGroup.ul
+            (List.map
                 selectJokesterView
                 jokesters
+            )
         ]
 
 
-selectJokesterView : Jokester -> Html Msg
 selectJokesterView ((Jokester name _) as jokester) =
-    button
-        [ class "jokester-select"
-        , onClick <| UserSelectedJokester jokester
+    ListGroup.li
+        [ ListGroup.attrs
+            [ onClick <| UserSelectedJokester jokester
+            ]
         ]
         [ span [ class "name" ] [ text name ], span [ class "right-caret" ] [ text ">" ] ]
 
@@ -583,8 +653,8 @@ writeJokeView : Jokester -> String -> Html Msg
 writeJokeView j s =
     div [ class "write-joke-view" ]
         [ h1 [] [ plopInName j ]
-        , textarea [ onInput WriteJokeTypings, class "textarea", value s ] []
-        , button [ class "submit-button", onClick UserClickedSubmitJoke ] [ text "submit" ]
+        , Textarea.textarea [ Textarea.rows 14, Textarea.attrs [ onInput WriteJokeTypings, class "textarea", value s ] ]
+        , Button.button [ Button.primary, Button.onClick UserClickedSubmitJoke ] [ text "submit" ]
         ]
 
 
@@ -607,5 +677,5 @@ main =
         { view = view
         , init = \_ -> init
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = \m -> Navbar.subscriptions (getNavStateFromModel m) NavbarMsg
         }
