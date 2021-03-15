@@ -9,3 +9,10 @@
   height: inherit;
 }
 
+
+/*
+https://github.com/rundis/elm-bootstrap/issues/48
+hack to have nav items align to the right
+ */
+ul.navbar-nav.mr-auto { margin-right: 0px !important; }
+div.navbar-collapse > div:nth-child(1) { justify-content: flex-end; }

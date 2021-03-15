@@ -4,8 +4,9 @@ const merge = require("webpack-merge");
 
 const ClosurePlugin = require('closure-webpack-plugin');
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const HTMLWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+// to add a service worker
+const workboxPlugin = require('workbox-webpack-plugin');
 // to extract the css as a separate file
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
@@ -19,20 +20,13 @@ var common = {
     mode: MODE,
     entry: "./src/index.js",
     output: {
-        path: path.resolve(__dirname, '../priv/static/js'),
+        path: path.resolve(__dirname, '../priv/static'),
         publicPath: MODE == "production" ? "/" : "http://localhost:3000/",
         // FIXME webpack -p automatically adds hash when building for production
         //filename: MODE == "production" ? "[name]-[hash].js" : "index.js"
         filename: 'app.js'
     },
-    plugins: [
-        new HTMLWebpackPlugin({
-            // Use this template to get basic responsive meta tags
-            template: "src/index.html",
-            // inject details of output file at end of body
-            inject: "body"
-        })
-    ],
+    plugins: [ ],
     resolve: {
         modules: [path.join(__dirname, "src"), "node_modules"],
         extensions: [".js", ".elm", ".scss", ".png"]
@@ -155,6 +149,11 @@ if (MODE === "production") {
                 // Options similar to the same options in webpackOptions.output
                 // both options are optional
                 filename: "app.css"
+            }),
+            new workboxPlugin.GenerateSW({
+              swDest: './service-worker.js',
+              skipWaiting: true,
+              clientsClaim: true,
             })
         ],
         module: {
