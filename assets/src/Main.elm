@@ -45,6 +45,11 @@ type Model
 type ViewingJokesState
     = ViewAllJokes RemoteJokes
     | ViewPersonJokes String Jokes
+    | ViewSingleJoke Joke LoadedJokesToReturnTo
+
+
+type alias LoadedJokesToReturnTo =
+    Jokes
 
 
 type alias Jokes =
@@ -104,6 +109,8 @@ init =
 
 type Msg
     = UserClickedLogJoke
+    | UserClickedJokeCard Joke
+    | UserClickedReturnToAllJokes
     | UserSelectedJokester Jokester
     | WriteJokeTypings String
     | UserClickedSubmitJoke
@@ -194,6 +201,22 @@ update msg model =
                     --ignore if we're not on the view all jokes screen
                     ( model, Cmd.none )
 
+        UserClickedReturnToAllJokes ->
+            case model of
+                ViewingJokes (ViewSingleJoke _ loadedJokes) navState ->
+                    ( ViewingJokes (ViewAllJokes (Success loadedJokes)) (getNavStateFromModel model), getAllRemoteJokes )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        UserClickedJokeCard joke ->
+            case model of
+                ViewingJokes (ViewAllJokes (Success loadedJokes)) navState ->
+                    ( ViewingJokes (ViewSingleJoke joke loadedJokes) navState, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         UserClickedViewAllJokes ->
             ( ViewingJokes (ViewAllJokes Loading) (getNavStateFromModel model), getAllRemoteJokes )
 
@@ -249,6 +272,13 @@ update msg model =
 
                         _ ->
                             ( model, Cmd.none )
+
+                ( ViewingJokes (ViewSingleJoke _ loadedJokesToReturnTo) navState, Ok deletedId ) ->
+                    let
+                        updatedLoadedJokes =
+                            List.filter (\x -> x.id /= deletedId) loadedJokesToReturnTo
+                    in
+                    ( ViewingJokes (ViewAllJokes (Success updatedLoadedJokes)) navState, getAllRemoteJokes )
 
                 _ ->
                     ( model, Cmd.none )
@@ -448,6 +478,9 @@ view model =
                         ViewAllJokes remoteJokes ->
                             viewAllJokesView remoteJokes
 
+                        ViewSingleJoke joke _ ->
+                            singleFullJokeView joke
+
                         ViewPersonJokes name jokes ->
                             jokesView ("Jokes of " ++ name) jokes
 
@@ -469,12 +502,16 @@ view model =
 navBarView model =
     Navbar.config NavbarMsg
         |> Navbar.withAnimation
-        |> Navbar.brand [ style "cursor" "pointer", onClick UserClickedNavigateHome ] [ text "Funny App" ]
+        |> Navbar.brand [ styleCursorPointer, onClick UserClickedNavigateHome ] [ text "Funny App" ]
         |> Navbar.items
-            [ Navbar.itemLink [ onClick UserClickedLogJoke ] [ text "Write down new joke" ]
-            , Navbar.itemLink [ onClick UserClickedLogOut ] [ text "Logout" ]
+            [ Navbar.itemLink [ styleCursorPointer, onClick UserClickedLogJoke ] [ text "Write down new joke" ]
+            , Navbar.itemLink [ styleCursorPointer, onClick UserClickedLogOut ] [ text "Logout" ]
             ]
         |> Navbar.view (getNavStateFromModel model)
+
+
+styleCursorPointer =
+    style "cursor" "pointer"
 
 
 writeJokeViewWrapper : WriteJokeState -> Html Msg
@@ -582,23 +619,53 @@ jokesView title jokes =
         ]
 
 
+singleFullJokeView : Joke -> Html Msg
+singleFullJokeView joke =
+    Grid.container []
+        [ Grid.row
+            [ Row.leftXs, rowSpacing Spacing.mt3 ]
+            [ Grid.col [ Col.xsAuto ]
+                [ h5 [ styleCursorPointer, onClick UserClickedReturnToAllJokes ]
+                    [ text "<-- Back" ]
+                ]
+            ]
+        , Grid.row [ Row.centerXs, rowSpacing Spacing.mb5 ]
+            [ Grid.col [ Col.xsAuto ]
+                [ Card.config [ Card.attrs [ onClick <| UserClickedJokeCard joke, style "width" "20rem", Spacing.mt3 ] ]
+                    |> Card.block [] [ Block.text [] [ text joke.content ] ]
+                    |> Card.block [ Block.align Text.alignXsRight ]
+                        [ Block.titleH4 [] [ text (jokesterToName joke.jokester) ] ]
+                    |> Card.block [ Block.align Text.alignXsLeft ]
+                        [ Block.custom <|
+                            Button.button
+                                [ Button.outlineDanger
+                                , Button.onClick (UserClickedTheDeleteButton joke.id)
+                                ]
+                                [ text "Delete" ]
+                        ]
+                    |> Card.view
+                ]
+            ]
+        ]
+
+
+type ShouldShowDeleteOption
+    = ShowDelete
+    | HideDelete
+
+
 rowSpacing space =
     Row.attrs [ space ]
 
 
 jokeView : Joke -> Html Msg
 jokeView joke =
-    Card.config [ Card.attrs [ style "width" "20rem", Spacing.mt3 ] ]
+    Card.config [ Card.attrs [ styleCursorPointer, onClick <| UserClickedJokeCard joke, style "width" "20rem", Spacing.mt3 ] ]
         |> Card.block []
-            [ Block.titleH4
-                [ onClick (UserClickedAPerson (jokesterToName joke.jokester)) ]
-                [ text (jokesterToName joke.jokester) ]
-            , Block.text [] [ text joke.content ]
-            , Block.custom <|
-                Button.button
-                    [ Button.outlineDanger, Button.onClick (UserClickedTheDeleteButton joke.id) ]
-                    [ text "Delete" ]
+            [ Block.text [] [ text joke.content ]
             ]
+        |> Card.block [ Block.align Text.alignXsRight ]
+            [ Block.titleH4 [] [ text (jokesterToName joke.jokester) ] ]
         |> Card.view
 
 
