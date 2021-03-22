@@ -1,3 +1,5 @@
+![veronica_joke](https://user-images.githubusercontent.com/20001915/111933569-bb294d00-8a8d-11eb-8d21-fdd849135900.gif)
+
 # Funny
 
 To start your Phoenix server:
@@ -18,3 +20,4 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
   * Docs: https://hexdocs.pm/phoenix
   * Forum: https://elixirforum.com/c/phoenix-forum
   * Source: https://github.com/phoenixframework/phoenix
+
