@@ -26,6 +26,7 @@ defmodule FunnyWeb.Router do
   scope "/", FunnyWeb do
     pipe_through [:browser, :auth]
 
+    get "/funny-service", PageController, :test
     get "/", PageController, :index
   end
 

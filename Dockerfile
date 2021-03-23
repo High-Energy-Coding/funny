@@ -50,9 +50,9 @@ COPY --from=raw-deps /app/deps/phoenix_live_view /deps/phoenix_live_view
 ################################################
 FROM frontend-base as frontend
 COPY /assets/package*.json /app/
-RUN --mount=type=secret,id=npmrc,dst=/app/.npmrc npm install
+RUN npm install
 COPY /assets /app
-RUN --mount=type=secret,id=npmrc,dst=/app/.npmrc npm run build
+RUN npm run build
 
 
 ################################################

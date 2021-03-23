@@ -1,0 +1,49 @@
+version: 2.1
+
+orbs:
+  aws-ecr: circleci/aws-ecr@6.15.3
+  aws-ecs: circleci/aws-ecs@2.1.0
+
+aliases:
+  - &docker_container
+    image: circleci/buildpack-deps:xenial@sha256:46d5e34ec842063fcfafda0dbb3a9a80d53ca6589ad13346ae13111f847afc0a
+
+workflows:
+   version: 2
+   build-deploy:
+     jobs:
+       - build-and-deploy:
+           context: HEC Context
+           filters:
+               branches:
+                   only: master
+
+jobs:
+   build-and-deploy:
+     docker:
+       - *docker_container
+     environment:
+       DOCKER_BUILDKIT: 1
+     steps:
+       - checkout
+       - setup_remote_docker:
+           # https://circleci.com/docs/2.0/building-docker-images/#docker-version
+           version: 19.03.12
+       - run:
+           command: |
+             DOCKER_BUILDKIT=1 docker build \
+                --progress=plain \
+                --ssh default=$HOME/.ssh/id_rsa \
+                --target=actual-runner \
+                --tag=869275377511.dkr.ecr.us-east-2.amazonaws.com/funny_repo:latest \
+                .
+       - aws-ecr/ecr-login
+       - aws-ecr/push-image:
+           repo: funny_repo
+           tag: latest
+       - aws-ecs/update-service:
+           skip-task-definition-registration: true
+           force-new-deployment: true
+           cluster-name: arn:aws:ecs:us-east-2:869275377511:cluster/custard-funny
+           service-name: arn:aws:ecs:us-east-2:869275377511:service/custard-funny/not-funny-at-all
+           family: 'idkwtf'
