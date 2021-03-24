@@ -13,10 +13,12 @@ defmodule Funny.Context do
   across all functionality.
   """
 
+  alias Funny.Catalog.Person
+
   defstruct actor: nil, scopes: []
 
   # This will eventually be a schema like User.t() or Vendor.t()
-  @type actor :: nil | :system
+  @type actor :: nil | Person.t()
 
   @type t :: %__MODULE__{actor: actor, scopes: list(String.t())}
 end

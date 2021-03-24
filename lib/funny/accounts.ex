@@ -1,6 +1,7 @@
 defmodule Funny.Accounts do
   alias Argon2
   alias Funny.Catalog.Person
+  alias Funny.Catalog.Family
 
   def get_person!(id) do
     Person.get_by(%{id: id})
@@ -19,5 +20,17 @@ defmodule Funny.Accounts do
           {:error, :invalid_credentials}
         end
     end
+  end
+
+  def register_person(attrs) do
+    {:ok, %{id: new_fam_id}} = Family.insert(%{name: attrs["family_name"]})
+
+    Person.insert(%{
+      email: attrs["email"],
+      name: attrs["first_name"],
+      family_id: new_fam_id,
+      username: attrs["username"],
+      password: attrs["password"]
+    })
   end
 end

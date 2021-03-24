@@ -33,6 +33,7 @@ defmodule FunnyWeb.Router do
   scope "/", FunnyWeb do
     pipe_through [:api, :auth]
 
+    post "/register", AuthController, :register
     post "/login", AuthController, :login
     get "/logout", AuthController, :logout
   end
@@ -40,7 +41,7 @@ defmodule FunnyWeb.Router do
   scope "/api", FunnyWeb do
     pipe_through [:api, :auth, :ensure_auth]
 
-    resources "/persons", PersonController, only: [:index]
+    resources "/persons", PersonController, only: [:index, :update, :edit]
     resources "/jokes", JokeController, except: [:update]
   end
 

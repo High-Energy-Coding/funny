@@ -39,6 +39,7 @@ type Model
     | SelectJokester (List Jokester) Navbar.State
     | WriteJoke WriteJokeState Navbar.State
     | ThankYouScreen Navbar.State
+    | SettingsScreen Navbar.State
     | ViewingJokes ViewingJokesState Navbar.State
 
 
@@ -60,6 +61,19 @@ type LoginActionState
     = LoggedOut UsernameTypings PasswordTypings
     | LoginRequestSent UsernameTypings PasswordTypings
     | ErrorLoggingIn String UsernameTypings PasswordTypings
+    | RegisterNewUser UsernameTypings PasswordTypings EmailTypings FirstNameTypings FamilyNameTypings
+
+
+type alias FamilyNameTypings =
+    String
+
+
+type alias FirstNameTypings =
+    String
+
+
+type alias EmailTypings =
+    String
 
 
 type alias UsernameTypings =
@@ -109,25 +123,30 @@ init =
 
 type Msg
     = UserClickedLogJoke
+    | UserClickedGoToSettings
     | UserClickedJokeCard Joke
     | UserClickedReturnToAllJokes
     | UserSelectedJokester Jokester
     | WriteJokeTypings String
     | UserClickedSubmitJoke
+    | UserClickedRegister
     | ReturnToHome
     | UserClickedViewAllJokes
     | UserClickedNavigateHome
     | UserClickedAPerson String
     | UserClickedTheDeleteButton String
+    | UserClickedCreateAccount
     | ServerRespondedToJokeSubmission (Result Http.Error String)
     | ServerSentJokes (Result Http.Error (List Joke))
     | ServerSentJokesters (Result Http.Error (List Jokester))
     | DeleteUp (Result Http.Error String)
+    | UserTypingEmail String
     | UserTypingUsername String
     | UserTypingPassword String
     | UserClickedLogin
     | ServerRespondedToLogoutAttempt (Result Http.Error ())
     | ServerRespondedToLoginAttempt (Result Http.Error ())
+    | ServerRespondedToRegisterAttempt (Result Http.Error ())
     | UserClickedLogOut
     | NavbarMsg Navbar.State
     | NOOP
@@ -150,6 +169,17 @@ update msg model =
                 Home (LoggedOut uT pT) navState ->
                     ( Home (LoggedOut uT str) navState, Cmd.none )
 
+                Home (RegisterNewUser uT pT eT fNT famT) navState ->
+                    ( Home (RegisterNewUser uT str eT fNT famT) navState, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        UserTypingEmail str ->
+            case model of
+                Home (RegisterNewUser uT pT eT fNT famT) navState ->
+                    ( Home (RegisterNewUser uT pT str fNT famT) navState, Cmd.none )
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -157,6 +187,25 @@ update msg model =
             case model of
                 Home (LoggedOut uT pT) navState ->
                     ( Home (LoggedOut str pT) navState, Cmd.none )
+
+                Home (RegisterNewUser uT pT eT fNT famT) navState ->
+                    ( Home (RegisterNewUser str pT eT fNT famT) navState, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        UserClickedCreateAccount ->
+            case model of
+                Home ((RegisterNewUser _ _ _ _ _) as registerState) navState ->
+                    ( Home registerState navState, sendRegisterAttempt registerState )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        UserClickedRegister ->
+            case model of
+                Home (LoggedOut uT pT) navState ->
+                    ( Home (RegisterNewUser uT pT "" "" "") navState, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -171,6 +220,19 @@ update msg model =
 
         ServerRespondedToLogoutAttempt resp ->
             ( Home (LoggedOut "" "") (getNavStateFromModel model), Cmd.none )
+
+        ServerRespondedToRegisterAttempt resp ->
+            case model of
+                Home _ navState ->
+                    case resp of
+                        Ok _ ->
+                            ( ViewingJokes (ViewAllJokes Loading) navState, getAllRemoteJokes )
+
+                        Err e ->
+                            ( Home (ErrorLoggingIn "woops" "" "") navState, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ServerRespondedToLoginAttempt resp ->
             case model of
@@ -225,6 +287,9 @@ update msg model =
 
         UserClickedLogJoke ->
             ( model, getAllRemoteJokesters )
+
+        UserClickedGoToSettings ->
+            ( SettingsScreen (getNavStateFromModel model), Cmd.none )
 
         UserSelectedJokester jokester ->
             ( WriteJoke (TypingOutJoke jokester "") (getNavStateFromModel model), Cmd.none )
@@ -301,6 +366,9 @@ handleNewNavbarState model newNavState =
         ThankYouScreen _ ->
             ThankYouScreen newNavState
 
+        SettingsScreen _ ->
+            SettingsScreen newNavState
+
         ViewingJokes vJState _ ->
             ViewingJokes vJState newNavState
 
@@ -319,6 +387,9 @@ getNavStateFromModel model =
         ThankYouScreen navState ->
             navState
 
+        SettingsScreen navState ->
+            navState
+
         ViewingJokes vJState navState ->
             navState
 
@@ -328,6 +399,27 @@ sendLogoutAttempt =
         { url = "/logout"
         , expect = Http.expectWhatever ServerRespondedToLogoutAttempt
         }
+
+
+sendRegisterAttempt registerState =
+    case registerState of
+        RegisterNewUser username password email firstName familyName ->
+            Http.post
+                { url = "/register"
+                , expect = Http.expectWhatever ServerRespondedToRegisterAttempt
+                , body =
+                    Http.jsonBody <|
+                        E.object
+                            [ ( "email", E.string email )
+                            , ( "username", E.string username )
+                            , ( "password", E.string password )
+                            , ( "family_name", E.string familyName )
+                            , ( "first_name", E.string firstName )
+                            ]
+                }
+
+        _ ->
+            Cmd.none
 
 
 sendLoginAttempt username passwd =
@@ -492,6 +584,9 @@ view model =
 
                 ThankYouScreen navState ->
                     div [ class "" ] [ h1 [] [ text "thanks for sharing \u{1F917}" ] ]
+
+                SettingsScreen _ ->
+                    settingsView
     in
     div []
         [ renderNavBar
@@ -499,15 +594,28 @@ view model =
         ]
 
 
+settingsView =
+    div [ class "" ] [ h1 [] [ text "settings page" ] ]
+
+
 navBarView model =
     Navbar.config NavbarMsg
         |> Navbar.withAnimation
-        |> Navbar.brand [ styleCursorPointer, onClick UserClickedNavigateHome ] [ text "Funny App" ]
+        |> Navbar.brand [ styleCursorPointer, onClick UserClickedNavigateHome ]
+            [ text "Funny App" ]
         |> Navbar.items
-            [ Navbar.itemLink [ styleCursorPointer, onClick UserClickedLogJoke ] [ text "Write down new joke" ]
-            , Navbar.itemLink [ styleCursorPointer, onClick UserClickedLogOut ] [ text "Logout" ]
-            ]
+            (List.map navItemView
+                [ ( UserClickedLogJoke, "Write down new joke" )
+                , ( UserClickedGoToSettings, "Settings" )
+                , ( UserClickedLogOut, "Logout" )
+                ]
+            )
         |> Navbar.view (getNavStateFromModel model)
+
+
+navItemView ( msg, ctaText ) =
+    Navbar.itemLink [ styleCursorPointer, onClick msg ]
+        [ text ctaText ]
 
 
 styleCursorPointer =
@@ -539,7 +647,7 @@ loginInHomeView hM =
 
 titleColumn : Grid.Column Msg
 titleColumn =
-    Grid.col []
+    Grid.col [ Col.attrs [ styleCursorPointer, onClick ReturnToHome ] ]
         [ Grid.row [ Row.centerXs ] [ Grid.col [ Col.xsAuto ] [ h1 [] [ text "Someone Had A" ] ] ]
         , Grid.row [ Row.centerXs ] [ Grid.col [ Col.xsAuto ] [ h1 [] [ text "Very" ] ] ]
         , Grid.row [ Row.centerXs ] [ Grid.col [ Col.xsAuto ] [ h1 [] [ text "Funny Joke Today" ] ] ]
@@ -570,6 +678,46 @@ loginPromptForReturningUser uT pT =
             ]
             [ text "Sign in" ]
         ]
+    , Button.button
+        [ Button.secondary
+        , Button.onClick UserClickedRegister
+        ]
+        [ text "New here? Register" ]
+    ]
+
+
+registerFormForNewUser uT pT eT fNT famT =
+    [ Form.form []
+        [ Form.group []
+            [ Form.label [ for "email" ] [ text "Email (optional)" ]
+            , Input.text
+                [ Input.id "email"
+                , Input.value eT
+                , Input.onInput UserTypingEmail
+                ]
+            ]
+        , Form.group []
+            [ Form.label [ for "username" ] [ text "Username" ]
+            , Input.text
+                [ Input.id "username"
+                , Input.value uT
+                , Input.onInput UserTypingUsername
+                ]
+            ]
+        , Form.group []
+            [ Form.label [ for "mypwd" ] [ text "Password" ]
+            , Input.password
+                [ Input.id "mypwd"
+                , Input.value pT
+                , Input.onInput UserTypingPassword
+                ]
+            ]
+        , Button.button
+            [ Button.primary
+            , Button.onClick UserClickedCreateAccount
+            ]
+            [ text "Create Account" ]
+        ]
     ]
 
 
@@ -580,6 +728,9 @@ loginStatusColumn hM =
 
         LoginRequestSent _ _ ->
             Grid.col [] [ text "LoginRequestSent" ]
+
+        RegisterNewUser uT pT eT fNT famT ->
+            Grid.col [] <| registerFormForNewUser uT pT eT fNT famT
 
         ErrorLoggingIn _ _ _ ->
             Grid.col []
@@ -610,12 +761,21 @@ viewAllJokesView remoteJokes =
 
 jokesView : String -> List Joke -> Html Msg
 jokesView title jokes =
+    let
+        theJokes =
+            case jokes of
+                [] ->
+                    [ h5 [] [ text "No jokes just yet" ] ]
+
+                _ ->
+                    List.map jokeView jokes
+    in
     Grid.container []
         [ Grid.row
             [ Row.centerXs, rowSpacing Spacing.mt3 ]
             [ Grid.col [ Col.xsAuto ] [ h3 [] [ text title ] ] ]
         , Grid.row [ Row.centerXs, rowSpacing Spacing.mb5 ]
-            [ Grid.col [ Col.xsAuto ] <| List.map jokeView jokes ]
+            [ Grid.col [ Col.xsAuto ] theJokes ]
         ]
 
 
