@@ -6,6 +6,9 @@ defmodule FunnyWeb.ErrorView do
   # def render("500.json", _assigns) do
   #   %{errors: %{detail: "Internal Server Error"}}
   # end
+  def render("400.json", %{changeset: changeset}) do
+    %{errors: changeset.errors}
+  end
 
   # By default, Phoenix returns the status message from
   # the template name. For example, "404.json" becomes
