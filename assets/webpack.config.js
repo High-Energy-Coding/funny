@@ -13,7 +13,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 var MODE =
     process.env.npm_lifecycle_event === "build" ? "production" : "development";
 var withDebug = !process.env["npm_config_nodebug"] && MODE == "development";
-console.log( process.env.npm_lifecycle_event );
+console.log(process.env.npm_lifecycle_event);
 console.log('\x1b[36m%s\x1b[0m', `** elm-webpack-starter: mode "${MODE}", withDebug: ${withDebug}\n`);
 
 var common = {
@@ -26,7 +26,7 @@ var common = {
         //filename: MODE == "production" ? "[name]-[hash].js" : "index.js"
         filename: 'app.js'
     },
-    plugins: [ ],
+    plugins: [],
     resolve: {
         modules: [path.join(__dirname, "src"), "node_modules"],
         extensions: [".js", ".elm", ".scss", ".png"]
@@ -55,6 +55,7 @@ if (MODE === "development") {
                         {
                             loader: "elm-webpack-loader",
                             options: {
+                                pathToElm: 'node_modules/.bin/elm',
                                 // add Elm's debug overlay to output
                                 debug: withDebug,
                                 //
@@ -62,46 +63,46 @@ if (MODE === "development") {
                             }
                         }
                     ]
-            },
+                },
 
 
-            {
-                test: /\.js$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: "babel-loader"
+                {
+                    test: /\.js$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: "babel-loader"
+                    }
+                },
+                {
+                    test: /\.scss$/,
+                    exclude: [/elm-stuff/, /node_modules/],
+                    // see https://github.com/webpack-contrib/css-loader#url
+                    loaders: ["style-loader", "css-loader?url=false", "sass-loader"]
+                },
+                {
+                    test: /\.css$/,
+                    exclude: [/elm-stuff/, /node_modules/],
+                    loaders: ["style-loader", "css-loader?url=false"]
+                },
+                {
+                    test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                    exclude: [/elm-stuff/, /node_modules/],
+                    loader: "url-loader",
+                    options: {
+                        limit: 10000,
+                        mimetype: "application/font-woff"
+                    }
+                },
+                {
+                    test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                    exclude: [/elm-stuff/, /node_modules/],
+                    loader: "file-loader"
+                },
+                {
+                    test: /\.(jpe?g|png|gif|svg)$/i,
+                    exclude: [/elm-stuff/, /node_modules/],
+                    loader: "file-loader"
                 }
-            },
-            {
-                test: /\.scss$/,
-                exclude: [/elm-stuff/, /node_modules/],
-                // see https://github.com/webpack-contrib/css-loader#url
-                loaders: ["style-loader", "css-loader?url=false", "sass-loader"]
-            },
-            {
-                test: /\.css$/,
-                exclude: [/elm-stuff/, /node_modules/],
-                loaders: ["style-loader", "css-loader?url=false"]
-            },
-            {
-                test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-                exclude: [/elm-stuff/, /node_modules/],
-                loader: "url-loader",
-                options: {
-                    limit: 10000,
-                    mimetype: "application/font-woff"
-                }
-            },
-            {
-                test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-                exclude: [/elm-stuff/, /node_modules/],
-                loader: "file-loader"
-            },
-            {
-                test: /\.(jpe?g|png|gif|svg)$/i,
-                exclude: [/elm-stuff/, /node_modules/],
-                loader: "file-loader"
-            }
 
             ]
         },
@@ -119,18 +120,18 @@ if (MODE === "development") {
 if (MODE === "production") {
     module.exports = merge(common, {
         optimization: {
-             minimizer: [
-               // new ClosurePlugin({mode: 'STANDARD', platform: 'native'}, {
-               //   // compiler flags here
-               //   //
-               //   // for debugging help, try these:
-               //   //
-               //   // formatting: 'PRETTY_PRINT',
-               //   // debug: true
-               //   // renaming: false
-               // })
-             ]
-          }, 
+            minimizer: [
+                // new ClosurePlugin({mode: 'STANDARD', platform: 'native'}, {
+                //   // compiler flags here
+                //   //
+                //   // for debugging help, try these:
+                //   //
+                //   // formatting: 'PRETTY_PRINT',
+                //   // debug: true
+                //   // renaming: false
+                // })
+            ]
+        },
         plugins: [
             // Delete everything from output-path (/dist) and report to user
             new CleanWebpackPlugin({
@@ -151,9 +152,9 @@ if (MODE === "production") {
                 filename: "app.css"
             }),
             new workboxPlugin.GenerateSW({
-              swDest: './service-worker.js',
-              skipWaiting: true,
-              clientsClaim: true,
+                swDest: './service-worker.js',
+                skipWaiting: true,
+                clientsClaim: true,
             })
         ],
         module: {
