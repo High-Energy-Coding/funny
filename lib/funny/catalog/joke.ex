@@ -13,6 +13,7 @@ defmodule Funny.Catalog.Joke do
   @foreign_key_type :binary_id
   schema "jokes" do
     field :content, :string
+    field :title, :string
 
     belongs_to(:person, Person)
     timestamps()
@@ -24,7 +25,7 @@ defmodule Funny.Catalog.Joke do
   @doc false
   def changeset(joke, attrs) do
     joke
-    |> cast(attrs, [:content, :person_id])
+    |> cast(attrs, [:content, :title, :person_id])
     |> validate_required([:content, :person_id])
   end
 end

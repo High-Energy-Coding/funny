@@ -15,6 +15,7 @@ defmodule FunnyWeb.JokeView do
     %{
       id: joke.id,
       content: joke.content,
+      title: joke.title,
       person: render_one(joke.person, PersonView, "person.json")
     }
   end
