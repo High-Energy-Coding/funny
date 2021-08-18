@@ -4,7 +4,7 @@
 # https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/experimental.md
 # https://hub.docker.com/r/docker/dockerfile/tags
 
-FROM elixir:1.11.2-alpine@sha256:e921c5c58de6c812562e0ab505332c0cf7637ea3f99a36c489d7d3325a0763ba as builder
+FROM elixir:1.12.2-alpine@sha256:e921c5c58de6c812562e0ab505332c0cf7637ea3f99a36c489d7d3325a0763ba as builder
 
 RUN apk add --no-cache \
     gcc \
