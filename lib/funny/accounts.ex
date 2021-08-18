@@ -23,12 +23,12 @@ defmodule Funny.Accounts do
   end
 
   def register_person(attrs) do
-    {:ok, %{id: new_fam_id}} = Family.insert(%{name: attrs["family_name"]})
+    # family can be associated later after login
+    # {:ok, %{id: new_fam_id}} = Family.insert(%{name: attrs["family_name"]})
 
     Person.insert(%{
       email: attrs["email"],
       name: attrs["first_name"],
-      family_id: new_fam_id,
       username: attrs["username"],
       password: attrs["password"]
     })
