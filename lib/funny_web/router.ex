@@ -27,14 +27,15 @@ defmodule FunnyWeb.Router do
     pipe_through [:browser, :auth]
 
     get "/funny-service", PageController, :test
-    get "/", PageController, :index
+    get "/sign_in", AppController, :sign_in
+    post "/login", AppController, :login
   end
 
   scope "/", FunnyWeb do
-    pipe_through [:api, :auth]
+    pipe_through [:browser, :auth, :ensure_auth]
 
-    post "/register", AuthController, :register
-    post "/login", AuthController, :login
+    get "/", AppController, :index
+    # post "/register", AuthController, :register
     get "/logout", AuthController, :logout
   end
 
