@@ -16,6 +16,11 @@
 
   </head>
 
+  <%= if Application.get_env(:funny, :envy) == :prod do %>
+    <script type="text/javascript" src="/app.js"></script>
+  <% else %>
+    <script type="text/javascript" src="http://localhost:3000/app.js"></script>
+  <% end %>
 
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">

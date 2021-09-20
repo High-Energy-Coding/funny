@@ -22,7 +22,12 @@ defmodule Funny.Catalog.Joke do
   queryable()
 
   @doc false
-  def changeset(joke, attrs) do
+  def new_changeset() do
+    %__MODULE__{}
+    |> cast(%{}, [])
+  end
+
+  def changeset(joke \\ %__MODULE__{}, attrs \\ %{}) do
     joke
     |> cast(attrs, [:content, :person_id])
     |> validate_required([:content, :person_id])

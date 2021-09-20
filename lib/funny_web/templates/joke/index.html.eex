@@ -1,0 +1,26 @@
+<h1>Listing Content</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Person</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for joke <- @content do %>
+    <tr>
+      <td><%= joke.person %></td>
+
+      <td>
+        <span><%= link "Show", to: Routes.joke_path(@conn, :show, joke) %></span>
+        <span><%= link "Edit", to: Routes.joke_path(@conn, :edit, joke) %></span>
+        <span><%= link "Delete", to: Routes.joke_path(@conn, :delete, joke), method: :delete, data: [confirm: "Are you sure?"] %></span>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<span><%= link "New Joke", to: Routes.joke_path(@conn, :new) %></span>

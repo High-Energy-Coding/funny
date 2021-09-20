@@ -1,0 +1,33 @@
+<div class="row justify-content-center mb-5">
+  <div class="col-auto"> 
+
+    <div class="card mt-3" style="cursor: pointer; width: 20rem;">
+      <div class="card-body">
+        <p class="card-text">
+        <%= @joke.content %>
+        </p>
+      </div>
+      <div class="card-body text-end">
+        <h4 class="card-title">
+          <%= @joke.person.name %>
+        </h4>
+      </div>
+      <div class="card-body text-end">
+        <h4 class="card-title">
+          <%= @joke.updated_at %>
+        </h4>
+      </div>
+      <div class="card-body">
+        <%= link to: Routes.joke_path(@conn, :edit, @joke), class: "card-link" do %>
+          <button class="btn btn-outline-primary">Edit</button>
+        <% end %>
+        <%= link to: Routes.joke_path(@conn, :delete, @joke), class: "card-link", method: :delete, data: [confirm: "Are you sure?"] do %>
+          <button class="btn btn-outline-danger">Delete</button>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<span><%= link "Back", to: Routes.app_path(@conn, :index) %></span>

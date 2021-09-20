@@ -35,6 +35,7 @@ defmodule FunnyWeb.Router do
     pipe_through [:browser, :auth, :ensure_auth]
 
     get "/", AppController, :index
+    resources "/jokes", JokeController
     # post "/register", AuthController, :register
     get "/logout", AuthController, :logout
   end
