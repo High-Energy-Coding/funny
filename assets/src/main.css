@@ -16,3 +16,8 @@ hack to have nav items align to the right
  */
 ul.navbar-nav.mr-auto { margin-right: 0px !important; }
 div.navbar-collapse > div:nth-child(1) { justify-content: flex-end; }
+
+.card-link  {
+    text-decoration: none;
+    color: inherit;
+}

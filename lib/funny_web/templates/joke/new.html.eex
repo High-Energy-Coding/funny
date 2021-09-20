@@ -1,0 +1,9 @@
+<div class="row justify-content-center mb-5">
+  <div class="col-auto"> 
+    <h1>New Joke</h1>
+
+    <%= render "form.html", Map.put(assigns, :action, Routes.joke_path(@conn, :create)) %>
+
+    <span><%= link "Back", to: Routes.app_path(@conn, :index) %></span>
+  </div>
+</div>

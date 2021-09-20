@@ -1,0 +1,21 @@
+<div class="row justify-content-center mb-5">
+  <div class="col-auto"> 
+    <%= for joke <- @jokes do %> 
+      <%= link to: Routes.joke_path(@conn, :show, joke.id), class: "card-link" do %>
+        <div class="card mt-3" style="cursor: pointer; width: 20rem;">
+          <div class="card-body">
+            <p class="card-text">
+            <%= joke.content %>
+            </p>
+          </div>
+          <div class="card-body text-right">
+            <h4 class="card-title">
+              <%= joke.person.name %>
+            </h4>
+          </div>
+        </div>
+      <% end %> 
+    <% end %> 
+  </div>
+</div>
+

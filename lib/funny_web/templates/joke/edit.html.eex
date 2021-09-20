@@ -1,0 +1,5 @@
+<h1>Edit Joke</h1>
+
+<%= render "form.html", Map.put(assigns, :action, Routes.joke_path(@conn, :update, @joke)) %>
+
+<span><%= link "Back", to: Routes.joke_path(@conn, :index) %></span>

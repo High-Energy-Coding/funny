@@ -42,7 +42,6 @@ defmodule FunnyWeb.AuthController do
   def logout(conn, _params) do
     conn
     |> Guardian.Plug.sign_out(clear_remember_me: true)
-    |> put_status(200)
-    |> json(%{})
+    |> redirect(to: "/sign_in")
   end
 end
