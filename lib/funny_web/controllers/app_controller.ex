@@ -83,4 +83,12 @@ defmodule FunnyWeb.AppController do
         )
     end
   end
+
+  def settings(conn, _) do
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+    %{name: fam_name} = Family.get_by(%{id: family_id})
+
+    fam_members = Person.list(%{family_id: family_id})
+    render(conn, "settings.html", fam_members: fam_members, fam_name: fam_name)
+  end
 end

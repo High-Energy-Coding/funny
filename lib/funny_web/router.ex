@@ -40,6 +40,8 @@ defmodule FunnyWeb.Router do
     get "/add-family", AppController, :add_family
     post "/add-family", AppController, :add_family_post
 
+    get "/settings", AppController, :settings
+
     get "/", AppController, :index
     resources "/jokes", JokeController
     # post "/register", AuthController, :register

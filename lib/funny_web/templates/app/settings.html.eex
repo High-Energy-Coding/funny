@@ -1,0 +1,17 @@
+
+the <%= @fam_name %> family
+
+
+<div class="row justify-content-center mb-5">
+  <div class="col-auto"> 
+      <%= for member <- @fam_members do %> 
+        <%= member.name %>
+      <% end %>
+  </div> 
+
+  <div> 
+  TODO: add family member link
+
+  </div> 
+</div> 
+
