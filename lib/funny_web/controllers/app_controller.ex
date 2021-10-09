@@ -1,6 +1,7 @@
 defmodule FunnyWeb.AppController do
   use FunnyWeb, :controller
   alias Funny.Catalog.Person
+  alias Funny.Catalog.Family
 
   alias Funny.Accounts
 
@@ -9,14 +10,37 @@ defmodule FunnyWeb.AppController do
   alias Funny.Catalog
 
   def index(conn, _something) do
-    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn) |> IO.inspect()
-    IO.inspect(family_id)
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+
+    if family_id == nil do
+      redirect(conn, to: "/add-family")
+    end
 
     case Catalog.list_jokes(
            %{with_person: true, family_id: family_id, latest_first: true},
            %Context{}
          ) do
       {:ok, jokes} -> render(conn, "index.html", jokes: jokes)
+    end
+  end
+
+  def add_family(conn, _something) do
+    changeset = Family.changeset(%Family{}, %{})
+    action = Routes.app_path(conn, :add_family_post)
+    render(conn, "add_family.html", changeset: changeset, action: action)
+  end
+
+  def add_family_post(conn, %{"family" => family}) do
+    person = Guardian.Plug.current_resource(conn)
+
+    case Family.insert(family) do
+      {:ok, family} ->
+        Person.update(person, %{family_id: family.id})
+        redirect(conn, to: "/")
+
+      {:error, changeset} ->
+        action = Routes.app_path(conn, :add_family_post)
+        render(conn, "add_family.html", changeset: changeset, action: action)
     end
   end
 
@@ -37,6 +61,26 @@ defmodule FunnyWeb.AppController do
         conn
         |> put_status(401)
         |> json(%{poopy: "#{inspect(reason)}"})
+    end
+  end
+
+  def register(conn, _) do
+    changeset = Person.changeset(%Person{}, %{})
+    render(conn, "register.html", changeset: changeset, action: Routes.app_path(conn, :register))
+  end
+
+  def register_post(conn, %{"person" => person}) do
+    case Person.insert(person) do
+      {:ok, person} ->
+        conn
+        |> Guardian.Plug.remember_me(person)
+        |> redirect(to: "/")
+
+      {:error, changeset} ->
+        render(conn, "register.html",
+          changeset: changeset,
+          action: Routes.app_path(conn, :register)
+        )
     end
   end
 end

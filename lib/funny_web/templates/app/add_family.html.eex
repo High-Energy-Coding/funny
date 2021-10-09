@@ -1,0 +1,19 @@
+
+
+hey you need a family
+
+<div class="row justify-content-center mb-5">
+  <div class="col-auto"> 
+
+    <%= form_for @changeset, @action, fn f -> %>
+      <div class="form-group">
+        <%= label f, :name, class: "control-label" %>
+        <%= text_input f, :name, class: "form-control" %>
+      </div>
+
+      <div class="form-group">
+        <%= submit "Add new family", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,7 +1,20 @@
+
+jeff stinks
+
+
 <div class="row justify-content-center mb-5">
   <div class="col-auto"> 
 
     <%= form_for @changeset, @action, fn f -> %>
+
+      <div class="form-group">
+        <%= label f, :name, class: "control-label" %>
+        <%= text_input f, :name, class: "form-control" %>
+      </div>
+      <div class="form-group">
+        <%= label f, :email, class: "control-label" %>
+        <%= text_input f, :email, class: "form-control" %>
+      </div>
 
       <div class="form-group">
         <%= label f, :username, class: "control-label" %>
@@ -14,9 +27,8 @@
       </div>
 
       <div class="form-group">
-        <%= submit "Submit", class: "btn btn-primary" %>
+        <%= submit "Register", class: "btn btn-primary" %>
       </div>
     <% end %>
   </div>
-  <span><%= link "Register", to: Routes.app_path(@conn, :register) %></span>
 </div>

@@ -3,9 +3,9 @@
   "name": "Funny App",
   "icons": [
     {
-      "src": "favicon.png",
-      "sizes": "16x16",
-      "type": "image/png"
+      "src": "favicon.jpg",
+      "sizes": "1391x1391",
+      "type": "image/jpg"
     }
   ],
   "start_url": "./",

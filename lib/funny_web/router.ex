@@ -29,10 +29,16 @@ defmodule FunnyWeb.Router do
     get "/funny-service", PageController, :test
     get "/sign_in", AppController, :sign_in
     post "/login", AppController, :login
+
+    get "/register", AppController, :register
+    post "/register", AppController, :register_post
   end
 
   scope "/", FunnyWeb do
     pipe_through [:browser, :auth, :ensure_auth]
+
+    get "/add-family", AppController, :add_family
+    post "/add-family", AppController, :add_family_post
 
     get "/", AppController, :index
     resources "/jokes", JokeController
