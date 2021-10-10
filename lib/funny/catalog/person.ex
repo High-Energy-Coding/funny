@@ -33,7 +33,7 @@ defmodule Funny.Catalog.Person do
   def changeset(person, attrs) do
     person
     |> cast(attrs, [:name, :username, :password, :email, :family_id])
-    |> validate_required([:username])
+    |> validate_required([])
     |> put_password_hash()
   end
 

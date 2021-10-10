@@ -44,6 +44,38 @@ defmodule FunnyWeb.AppController do
     end
   end
 
+  def add_family_member(conn, _) do
+    %Person{family_id: family_id} = person = Guardian.Plug.current_resource(conn)
+
+    %{name: fam_name} = Family.get_by(%{id: family_id})
+    changeset = Person.changeset(%Person{}, %{family_id: person.family_id})
+
+    render(conn, "add_family_member.html",
+      changeset: changeset,
+      action: Routes.app_path(conn, :add_family_member_post),
+      fam_name: fam_name
+    )
+  end
+
+  def add_family_member_post(conn, %{"person" => new_member}) do
+    %Person{family_id: family_id} = person = Guardian.Plug.current_resource(conn)
+    %{name: fam_name} = Family.get_by(%{id: family_id})
+
+    case Person.insert(%{family_id: family_id, name: new_member["name"]}) do
+      {:ok, _} ->
+        redirect(conn, to: "/settings")
+
+      {:error, changeset} ->
+        IO.inspect(changeset)
+
+        render(conn, "add_family_member.html",
+          changeset: changeset,
+          action: Routes.app_path(conn, :add_family_member_post),
+          fam_name: fam_name
+        )
+    end
+  end
+
   def sign_in(conn, _something) do
     changeset = Person.changeset(%Person{}, %{})
     render(conn, "sign_in.html", changeset: changeset, action: Routes.app_path(conn, :login))
@@ -77,6 +109,8 @@ defmodule FunnyWeb.AppController do
         |> redirect(to: "/")
 
       {:error, changeset} ->
+        IO.inspect(changeset)
+
         render(conn, "register.html",
           changeset: changeset,
           action: Routes.app_path(conn, :register)

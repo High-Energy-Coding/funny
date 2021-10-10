@@ -1,7 +1,6 @@
 defmodule FunnyWeb.JokeController do
   use FunnyWeb, :controller
 
-  alias Funny.Catalog
   alias Funny.Catalog.Joke
   alias Funny.Catalog.Person
 
@@ -17,10 +16,10 @@ defmodule FunnyWeb.JokeController do
 
   def create(conn, %{"joke" => joke_params}) do
     case Joke.insert(joke_params) do
-      {:ok, joke} ->
+      {:ok, _} ->
         conn
         |> put_flash(:info, "Joke created successfully.")
-        |> redirect(to: Routes.joke_path(conn, :show, joke))
+        |> redirect(to: Routes.app_path(conn, :index))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)

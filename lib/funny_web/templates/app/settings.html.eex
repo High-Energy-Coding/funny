@@ -5,12 +5,14 @@ the <%= @fam_name %> family
 <div class="row justify-content-center mb-5">
   <div class="col-auto"> 
       <%= for member <- @fam_members do %> 
-        <%= member.name %>
+        <div> 
+          <%= member.name %>
+        </div> 
       <% end %>
   </div> 
 
   <div> 
-  TODO: add family member link
+    <span><%= link "Add family member", to: Routes.app_path(@conn, :add_family_member) %></span>
 
   </div> 
 </div> 
