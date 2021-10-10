@@ -81,8 +81,8 @@ defmodule FunnyWeb.AppController do
     render(conn, "sign_in.html", changeset: changeset, action: Routes.app_path(conn, :login))
   end
 
-  def login(conn, %{"person" => %{"username" => username, "password" => password}}) do
-    Accounts.authenticate_person(username, password)
+  def login(conn, %{"person" => %{"email" => email, "password" => password}}) do
+    Accounts.authenticate_person(email, password)
     |> case do
       {:ok, person} ->
         conn

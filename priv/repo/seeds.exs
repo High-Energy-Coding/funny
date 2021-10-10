@@ -21,7 +21,7 @@ alias Funny.Catalog.Family
   Person.insert(%{
     name: "Peter",
     family_id: griffin_fam_id,
-    username: "pgriffin",
+    email: "pgriffin@aol.com",
     password: "1234"
   })
 
@@ -31,7 +31,7 @@ alias Funny.Catalog.Family
   Person.insert(%{
     name: "Homer",
     family_id: simpsons_fam_id,
-    username: "hsimpson",
+    email: "hsimpson@gmail.com",
     password: "1234"
   })
 

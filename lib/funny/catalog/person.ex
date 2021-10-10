@@ -15,7 +15,6 @@ defmodule Funny.Catalog.Person do
   @foreign_key_type :binary_id
   schema "persons" do
     field :name, :string
-    field :username, :string
     field :password, :string
     field :email, :string
 
@@ -32,7 +31,7 @@ defmodule Funny.Catalog.Person do
   @doc false
   def changeset(person, attrs) do
     person
-    |> cast(attrs, [:name, :username, :password, :email, :family_id])
+    |> cast(attrs, [:name, :password, :email, :family_id])
     |> validate_required([])
     |> put_password_hash()
   end
