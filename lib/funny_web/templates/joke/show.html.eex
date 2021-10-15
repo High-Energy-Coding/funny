@@ -14,7 +14,7 @@
       </div>
       <div class="card-body text-end">
         <h4 class="card-title">
-          <%= @joke.updated_at %>
+          <%= show_joke_datetime(@joke.inserted_at) %> 
         </h4>
       </div>
       <div class="card-body">

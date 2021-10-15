@@ -36,6 +36,18 @@ defmodule Funny.Catalog.Person do
     |> put_password_hash()
   end
 
+  def new_register_changeset(person, attrs) do
+    person
+    |> cast(attrs, [:name, :password, :email, :family_id])
+    |> validate_required([:name, :password, :email])
+    |> validate_format(:email, ~r/@/, message: "valid email must contain an @")
+    |> validate_length(:password,
+      min: 4,
+      message: "password should be at least like 4 characters. cmon"
+    )
+    |> put_password_hash()
+  end
+
   defp put_password_hash(
          %Ecto.Changeset{valid?: true, changes: %{password: password}} = changeset
        ) do

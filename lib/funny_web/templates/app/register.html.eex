@@ -1,21 +1,27 @@
 <div class="row justify-content-center mb-5">
-  <div class="col-auto"> 
+  <div class="col-lg-6 col-sm-10"> 
 
     <%= form_for @changeset, @action, fn f -> %>
 
       <div class="form-group">
-        <%= label f, :name, class: "control-label" %>
-        <%= text_input f, :name, class: "form-control" %>
+        <%= label f, :name, "First Name", class: "control-label" %>
+        <%= text_input f, :name, class: "form-control #{is_invalid_check(f, :name)}",
+                    "aria-describedby": input_id(f, :name)
+        %>
         <%= error_tag f, :name %>
       </div>
       <div class="form-group">
         <%= label f, :email, class: "control-label" %>
-        <%= text_input f, :email, class: "form-control" %>
+        <%= text_input f, :email, class: "form-control #{is_invalid_check(f, :email)}", 
+                    "aria-describedby": input_id(f, :email)
+        %>
         <%= error_tag f, :email %>
       </div>
 
       <div class="form-group">
-        <%= label f, :password, class: "control-label" %>
+        <%= label f, :password, class: "control-label #{is_invalid_check(f, :password)}" ,
+                    "aria-describedby": input_id(f, :password)
+        %>
         <%= password_input f, :password, class: "form-control" %>
         <%= error_tag f, :password %>
       </div>

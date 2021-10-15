@@ -113,20 +113,20 @@ defmodule FunnyWeb.AppController do
   end
 
   def register(conn, _) do
-    changeset = Person.changeset(%Person{}, %{})
+    changeset = Person.new_register_changeset(%Person{}, %{})
     render(conn, "register.html", changeset: changeset, action: Routes.app_path(conn, :register))
   end
 
   def register_post(conn, %{"person" => person}) do
-    case Person.insert(person) do
+    changeset = Person.new_register_changeset(%Person{}, person)
+
+    case Funny.Repo.insert(changeset) do
       {:ok, person} ->
         conn
         |> Guardian.Plug.remember_me(person)
         |> redirect(to: "/")
 
       {:error, changeset} ->
-        IO.inspect(changeset)
-
         render(conn, "register.html",
           changeset: changeset,
           action: Routes.app_path(conn, :register)
