@@ -17,3 +17,6 @@ config :funny, FunnyWeb.Endpoint,
     :inet6,
     port: "80"
   ]
+
+config :argon2_elixir,
+  t_cost: 2
