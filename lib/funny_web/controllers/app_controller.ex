@@ -1,6 +1,7 @@
 defmodule FunnyWeb.AppController do
   use FunnyWeb, :controller
   alias Funny.Catalog.Person
+  alias Funny.Catalog.Login
   alias Funny.Catalog.Family
 
   alias Funny.Accounts
@@ -77,22 +78,37 @@ defmodule FunnyWeb.AppController do
   end
 
   def sign_in(conn, _something) do
-    changeset = Person.changeset(%Person{}, %{})
-    render(conn, "sign_in.html", changeset: changeset, action: Routes.app_path(conn, :login))
+    changeset = Login.changeset(%Login{}, %{})
+
+    render(conn, "sign_in.html",
+      changeset: changeset,
+      action: Routes.app_path(conn, :login),
+      invalid_login: false
+    )
   end
 
-  def login(conn, %{"person" => %{"email" => email, "password" => password}}) do
-    Accounts.authenticate_person(email, password)
-    |> case do
-      {:ok, person} ->
-        conn
-        |> Guardian.Plug.remember_me(person)
-        |> redirect(to: "/")
+  def login(conn, %{"login" => %{"email" => email, "password" => password} = params}) do
+    changeset = Login.changeset(%Login{}, params)
+    decision = Ecto.Changeset.apply_action(changeset, :checkeroonies)
 
-      {:error, reason} ->
+    case decision do
+      {:ok, _} ->
+        case Accounts.authenticate_person(email, password) do
+          {:ok, login} ->
+            conn
+            |> Guardian.Plug.remember_me(login)
+            |> redirect(to: "/")
+
+          _ ->
+            conn
+            |> assign(:invalid_login, true)
+            |> render("sign_in.html", changeset: changeset, action: Routes.app_path(conn, :login))
+        end
+
+      {:error, error_cs} ->
         conn
-        |> put_status(401)
-        |> json(%{poopy: "#{inspect(reason)}"})
+        |> assign(:invalid_login, false)
+        |> render("sign_in.html", changeset: error_cs, action: Routes.app_path(conn, :login))
     end
   end
 
@@ -116,6 +132,18 @@ defmodule FunnyWeb.AppController do
           action: Routes.app_path(conn, :register)
         )
     end
+  end
+
+  def forgot_password(conn, _) do
+    render(conn, "forgot_password.html")
+  end
+
+  def email_new_password(conn, %{"email" => email}) do
+    Accounts.email_new_password(email)
+
+    conn
+    |> put_flash(:info, "Welcome to Phoenix, from flash info!")
+    |> render("forgot_password.html")
   end
 
   def settings(conn, _) do

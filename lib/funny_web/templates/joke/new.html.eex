@@ -1,9 +1,8 @@
 <div class="row justify-content-center mb-5">
-  <div class="col-auto"> 
-    <h1>New Joke</h1>
+  <div class="col-lg-8 col-sm-12"> 
+    <h1 class="h1">Add a New Joke</h1>
 
     <%= render "form.html", Map.put(assigns, :action, Routes.joke_path(@conn, :create)) %>
-
-    <span><%= link "Back", to: Routes.app_path(@conn, :index) %></span>
   </div>
 </div>
+    <%= link "Cancel", to: Routes.app_path(@conn, :index), class: "btn btn-outline-secondary"%>

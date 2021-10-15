@@ -21,3 +21,7 @@ div.navbar-collapse > div:nth-child(1) { justify-content: flex-end; }
     text-decoration: none;
     color: inherit;
 }
+
+.joke-input {
+    min-height: 120px !important;
+}

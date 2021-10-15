@@ -6,19 +6,21 @@
    
   <% end %>
 
-  <div>
-    <%= label f, :content %>
-    <%= textarea f, :content %>
+  <div class="form-group">
+    <%= label f, :content, class: "control-label" %>
+    <%= textarea f, :content, class: "form-control joke-input #{is_invalid_check(f, :content)}",
+                    "aria-describedby": input_id(f, :content)
+    %>
     <%= error_tag f, :content %>
   </div>
 
-  <div>
+  <div class="form-group mb-5">
     <%=label f, :person %>
-    <%=select f, :person_id, @person_list%>
+    <%=select f, :person_id, @person_list, class: "form-select"%>
     <%=error_tag f, :person %>
   </div>
 
-  <div>
-    <%= submit "Save" %>
+  <div class="form-group d-grid gap-2 d-md-flex justify-content-md-end">
+    <%= submit "Save", class: "btn btn-primary mb-3"%>
   </div>
 <% end %>

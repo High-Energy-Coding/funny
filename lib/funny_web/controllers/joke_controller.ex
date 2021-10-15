@@ -5,7 +5,7 @@ defmodule FunnyWeb.JokeController do
   alias Funny.Catalog.Person
 
   def new(conn, _params) do
-    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn) |> IO.inspect()
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
 
     person_list =
       Person.list(%{family_id: family_id})
@@ -22,7 +22,13 @@ defmodule FunnyWeb.JokeController do
         |> redirect(to: Routes.app_path(conn, :index))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset)
+        %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+
+        person_list =
+          Person.list(%{family_id: family_id})
+          |> Enum.map(fn x -> {x.name, x.id} end)
+
+        render(conn, "new.html", changeset: changeset, person_list: person_list)
     end
   end
 

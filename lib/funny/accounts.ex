@@ -6,6 +6,14 @@ defmodule Funny.Accounts do
     Person.get_by(%{id: id})
   end
 
+  def email_new_password(email) do
+    IO.inspect("pretend i sent an email")
+
+    Person.get_by(%{email: email})
+    |> TT.wrap()
+    |> TT.map(fn p -> Person.update(p, %{password: "1234"}) end)
+  end
+
   def authenticate_person(email, plain_text_password) do
     case Person.get_by(%{email: email}) do
       nil ->
