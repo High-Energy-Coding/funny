@@ -25,3 +25,29 @@ div.navbar-collapse > div:nth-child(1) { justify-content: flex-end; }
 .joke-input {
     min-height: 120px !important;
 }
+
+.spinner-center {
+    position: relative;
+}
+.yes-spinny {
+    display: block !important;
+}
+.yes-gray::after {
+    content: "";
+    display: block;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    z-index: 9999;
+    background-color: rgb(255, 255, 255);
+    opacity: 0.5;
+}
+
+.spinny {
+    display: none;
+    position: absolute;
+    top: calc(50% - 1rem);
+    left: calc(50% - 1rem);
+}
