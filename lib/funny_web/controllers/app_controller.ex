@@ -3,6 +3,7 @@ defmodule FunnyWeb.AppController do
   alias Funny.Catalog.Person
   alias Funny.Catalog.Login
   alias Funny.Catalog.Family
+  alias Funny.Catalog.ChangePassword
 
   alias Funny.Accounts
 
@@ -144,6 +145,52 @@ defmodule FunnyWeb.AppController do
     conn
     |> put_flash(:info, "Welcome to Phoenix, from flash info!")
     |> render("forgot_password.html")
+  end
+
+  def change_password(conn, _) do
+    changeset = ChangePassword.changeset(%ChangePassword{}, %{})
+    action = Routes.app_path(conn, :post_change_password)
+
+    render(conn, "change_password.html",
+      changeset: changeset,
+      action: action,
+      invalid_login: false
+    )
+  end
+
+  def post_change_password(conn, %{"change_password" => params}) do
+    person = Guardian.Plug.current_resource(conn)
+    changeset = ChangePassword.changeset(%ChangePassword{}, params)
+    decision = Ecto.Changeset.apply_action(changeset, :checkeroonies)
+
+    case decision do
+      {:ok, change_password} ->
+        case Accounts.authenticate_person(person.email, change_password.old_password) do
+          {:ok, _} ->
+            Person.update(person, %{password: change_password.new_password})
+
+            conn
+            |> redirect(to: "/")
+
+          _ ->
+            conn
+            |> assign(:invalid_login, true)
+            |> render("change_password.html",
+              changeset: changeset,
+              action: Routes.app_path(conn, :post_change_password),
+              invalid_login: true
+            )
+        end
+
+      {:error, error_changeset} ->
+        action = Routes.app_path(conn, :post_change_password)
+
+        render(conn, "change_password.html",
+          changeset: error_changeset,
+          action: action,
+          invalid_login: false
+        )
+    end
   end
 
   def settings(conn, _) do

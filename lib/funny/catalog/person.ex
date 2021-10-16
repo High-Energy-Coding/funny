@@ -41,6 +41,7 @@ defmodule Funny.Catalog.Person do
     |> cast(attrs, [:name, :password, :email, :family_id])
     |> validate_required([:name, :password, :email])
     |> validate_format(:email, ~r/@/, message: "valid email must contain an @")
+    |> unique_constraint(:email)
     |> validate_length(:password,
       min: 4,
       message: "password should be at least like 4 characters. cmon"

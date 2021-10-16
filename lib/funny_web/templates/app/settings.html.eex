@@ -13,6 +13,7 @@ the <%= @fam_name %> family
 
   <div> 
     <span><%= link "Add family member", to: Routes.app_path(@conn, :add_family_member) %></span>
+    <span><%= link "Change Password", to: Routes.app_path(@conn, :change_password) %></span>
 
   </div> 
 </div> 
