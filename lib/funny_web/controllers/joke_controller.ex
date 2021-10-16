@@ -33,24 +33,29 @@ defmodule FunnyWeb.JokeController do
   end
 
   def show(conn, %{"id" => id}) do
-    joke = Joke.get_by(%{id: id, with_person: true})
-    render(conn, "show.html", joke: joke)
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+
+    case Joke.get_by(%{id: id, family_id: family_id, with_person: true}) do
+      nil -> render(conn, "no_joke_found.html")
+      joke -> render(conn, "show.html", joke: joke)
+    end
   end
 
   def edit(conn, %{"id" => id}) do
-    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn) |> IO.inspect()
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
 
     person_list =
       Person.list(%{family_id: family_id})
       |> Enum.map(fn x -> {x.name, x.id} end)
 
-    joke = Joke.get_by(%{id: id})
+    joke = Joke.get_by(%{id: id, family_id: family_id})
     changeset = Joke.changeset(joke)
     render(conn, "edit.html", joke: joke, changeset: changeset, person_list: person_list)
   end
 
   def update(conn, %{"id" => id, "joke" => joke_params}) do
-    joke = Joke.get_by(%{id: id})
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+    joke = Joke.get_by(%{id: id, family_id: family_id})
 
     case Joke.update(joke, joke_params) do
       {:ok, joke} ->
@@ -64,7 +69,9 @@ defmodule FunnyWeb.JokeController do
   end
 
   def delete(conn, %{"id" => id}) do
-    Joke.get_by(%{id: id})
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+
+    Joke.get_by(%{id: id, family_id: family_id})
     |> Joke.delete()
 
     conn
