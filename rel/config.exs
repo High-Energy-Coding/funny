@@ -19,4 +19,5 @@ config :funny, FunnyWeb.Endpoint,
   ]
 
 config :argon2_elixir,
-  t_cost: 2
+  t_cost: 2,
+  m_cost: 8

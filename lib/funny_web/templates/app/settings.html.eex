@@ -1,8 +1,8 @@
+<h1 class="h1 mb-3">Settings</h1>
 
-
-
-the <%= @fam_name %> family
-
+<h2 class="h3">
+  the <%= @fam_name %> family
+</h2>
 
 <div class="row justify-content-center mb-5">
   <div class="col-auto"> 
@@ -14,9 +14,12 @@ the <%= @fam_name %> family
   </div> 
 
   <div> 
-    <span><%= link "Add family member", to: Routes.app_path(@conn, :add_family_member) %></span>
-    <span><%= link "Change Password", to: Routes.app_path(@conn, :change_password) %></span>
-
+    <div><%= link "Add family member", 
+              to: Routes.app_path(@conn, :add_family_member), 
+              class: "btn btn-secondary mb-3" %></div>
+    <div><%= link "Change Password", 
+              to: Routes.app_path(@conn, :change_password), 
+              class: "btn btn-secondary" %></div>
   </div> 
 </div> 
 
