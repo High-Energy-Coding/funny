@@ -9,7 +9,7 @@
           <div class="card mt-3" style="cursor: pointer; width: 20rem;">
             <div class="card-body">
               <p class="card-text">
-              <%= joke.content %>
+              <%= text_to_html(joke.content) %>
               </p>
             </div>
             <div class="card-body text-right">
