@@ -40,6 +40,10 @@ defmodule FunnyWeb.Router do
   scope "/", FunnyWeb do
     pipe_through [:browser, :auth, :ensure_auth]
 
+    scope "/images" do
+      get "/:family_id/:file", AppController, :get_file
+    end
+
     get "/add-family", AppController, :add_family
     post "/add-family", AppController, :add_family_post
 

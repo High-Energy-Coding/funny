@@ -3,6 +3,11 @@
 
     <div class="card mt-3" style="cursor: pointer; width: 20rem;">
       <div class="card-body">
+        <%= if @joke.image_url != nil do %>
+          <img style="max-width: 100%" 
+               src="/images/<%= @joke.image_url %>" 
+               alt="">
+        <% end %> 
         <p class="card-text">
         <%= text_to_html(@joke.content) %>
         </p>

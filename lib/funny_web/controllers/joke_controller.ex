@@ -15,6 +15,13 @@ defmodule FunnyWeb.JokeController do
   end
 
   def create(conn, %{"joke" => joke_params}) do
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+    thing = "#{family_id}/test.png"
+    %{path: path} = joke_params["file_example"]
+    file = File.read!(path)
+    Funny.AWS.put_object(thing, file)
+    joke_params = Map.put(joke_params, "image_url", thing)
+
     case Joke.insert(joke_params) do
       {:ok, _} ->
         conn
