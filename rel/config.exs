@@ -21,3 +21,6 @@ config :funny, FunnyWeb.Endpoint,
 config :argon2_elixir,
   t_cost: 2,
   m_cost: 8
+
+config :funny, :aws_adapter, Funny.AWS.Default
+config :funny, :s3_bucket, "high_energy_funny"
