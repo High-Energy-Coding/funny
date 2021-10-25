@@ -200,4 +200,15 @@ defmodule FunnyWeb.AppController do
     fam_members = Person.list(%{family_id: family_id})
     render(conn, "settings.html", fam_members: fam_members, fam_name: fam_name)
   end
+
+  def get_file(conn, %{"family_id" => family_id, "file" => file_name}) do
+    %Person{family_id: authed_family_id} = Guardian.Plug.current_resource(conn)
+
+    if family_id == authed_family_id do
+      {:ok, file} = Funny.AWS.get_object("#{family_id}/#{file_name}")
+      send_download(conn, {:binary, file}, disposition: :inline, filename: file_name)
+    else
+      raise "gtfo"
+    end
+  end
 end

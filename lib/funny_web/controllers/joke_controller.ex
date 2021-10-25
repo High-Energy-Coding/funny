@@ -15,6 +15,19 @@ defmodule FunnyWeb.JokeController do
   end
 
   def create(conn, %{"joke" => joke_params}) do
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+
+    joke_params =
+      case joke_params["image_attachment"] do
+        %Plug.Upload{path: path, content_type: "image/" <> content_type} ->
+          s3_url_path = family_id <> "/" <> Ecto.UUID.generate() <> "." <> content_type
+          Funny.AWS.put_object(s3_url_path, File.read!(path))
+          Map.put(joke_params, "image_url", s3_url_path)
+
+        _ ->
+          joke_params
+      end
+
     case Joke.insert(joke_params) do
       {:ok, _} ->
         conn
