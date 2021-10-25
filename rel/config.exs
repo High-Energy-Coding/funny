@@ -24,3 +24,5 @@ config :argon2_elixir,
 
 config :funny, :aws_adapter, Funny.AWS.Default
 config :funny, :s3_bucket, "high-energy-funny"
+
+config :ex_aws, region: "us-east-2"

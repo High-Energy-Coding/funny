@@ -4,6 +4,8 @@ defmodule FunnyWeb.JokeController do
   alias Funny.Catalog.Joke
   alias Funny.Catalog.Person
 
+  require Logger
+
   def new(conn, _params) do
     %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
 
@@ -21,8 +23,16 @@ defmodule FunnyWeb.JokeController do
       case joke_params["image_attachment"] do
         %Plug.Upload{path: path, content_type: "image/" <> content_type} ->
           s3_url_path = family_id <> "/" <> Ecto.UUID.generate() <> "." <> content_type
-          Funny.AWS.put_object(s3_url_path, File.read!(path))
-          Map.put(joke_params, "image_url", s3_url_path)
+
+          case Funny.AWS.put_object(s3_url_path, File.read!(path)) do
+            {:ok, _} ->
+              Map.put(joke_params, "image_url", s3_url_path)
+
+            {:error, {:http_error, http_status, reason}} ->
+              Logger.log(:error, "ruh roh!")
+              Logger.log(:error, "recieved http status of #{http_status} with reason #{reason}")
+              joke_params
+          end
 
         _ ->
           joke_params
