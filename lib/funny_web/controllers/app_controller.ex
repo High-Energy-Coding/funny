@@ -208,7 +208,7 @@ defmodule FunnyWeb.AppController do
       {:ok, file} = Funny.AWS.get_object("#{family_id}/#{file_name}")
 
       conn
-      |> put_resp_header("cache-control", "private, max-age=7200")
+      |> put_resp_header("cache-control", "private, max-age=604800")
       |> send_download({:binary, file}, disposition: :inline, filename: file_name)
     else
       raise "gtfo"
