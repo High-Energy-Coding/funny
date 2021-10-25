@@ -60,7 +60,7 @@ defmodule FunnyWeb.AppController do
   end
 
   def add_family_member_post(conn, %{"person" => new_member}) do
-    %Person{family_id: family_id} = person = Guardian.Plug.current_resource(conn)
+    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
     %{name: fam_name} = Family.get_by(%{id: family_id})
 
     case Person.insert(%{family_id: family_id, name: new_member["name"]}) do
@@ -206,7 +206,10 @@ defmodule FunnyWeb.AppController do
 
     if family_id == authed_family_id do
       {:ok, file} = Funny.AWS.get_object("#{family_id}/#{file_name}")
-      send_download(conn, {:binary, file}, disposition: :inline, filename: file_name)
+
+      conn
+      |> put_resp_header("cache-control", "private, max-age=7200")
+      |> send_download({:binary, file}, disposition: :inline, filename: file_name)
     else
       raise "gtfo"
     end
