@@ -23,4 +23,4 @@ config :argon2_elixir,
   m_cost: 8
 
 config :funny, :aws_adapter, Funny.AWS.Default
-config :funny, :s3_bucket, "high_energy_funny"
+config :funny, :s3_bucket, "high-energy-funny"

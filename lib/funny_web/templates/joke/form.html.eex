@@ -6,7 +6,7 @@
    
   <% end %>
 
-  <%= file_input(f, :file_example) %>
+  <%= file_input(f, :image_attachment) %>
 
   <div class="form-group">
     <%= label f, :content, class: "control-label" %>
