@@ -15,7 +15,7 @@ defmodule Funny.Accounts do
   end
 
   def authenticate_person(email, plain_text_password) do
-    case Person.get_by(%{email: email}) do
+    case Person.get_by(%{email: String.downcase(email)}) do
       nil ->
         Argon2.no_user_verify()
         {:error, :invalid_credentials}

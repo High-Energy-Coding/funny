@@ -40,6 +40,7 @@ defmodule Funny.Catalog.Person do
     person
     |> cast(attrs, [:name, :password, :email, :family_id])
     |> validate_required([:name, :password, :email])
+    |> update_change(:email, &String.downcase/1)
     |> validate_format(:email, ~r/@/, message: "valid email must contain an @")
     |> unique_constraint(:email)
     |> validate_length(:password,
