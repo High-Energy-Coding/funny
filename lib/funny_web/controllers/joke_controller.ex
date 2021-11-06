@@ -3,6 +3,7 @@ defmodule FunnyWeb.JokeController do
 
   alias Funny.Catalog.Joke
   alias Funny.Catalog.Person
+  alias Funny.Catalog.Comment
 
   require Logger
 
@@ -58,9 +59,9 @@ defmodule FunnyWeb.JokeController do
   def show(conn, %{"id" => id}) do
     %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
 
-    case Joke.get_by(%{id: id, family_id: family_id, with_person: true}) do
+    case Joke.get_by(%{id: id, family_id: family_id, with_person: true, with_comments: true}) do
       nil -> render(conn, "no_joke_found.html")
-      joke -> render(conn, "show.html", joke: joke)
+      joke -> render(conn, "show.html", joke: joke, new_comment: Comment.new_changeset())
     end
   end
 

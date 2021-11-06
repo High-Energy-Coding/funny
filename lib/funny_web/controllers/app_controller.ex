@@ -1,8 +1,10 @@
 defmodule FunnyWeb.AppController do
   use FunnyWeb, :controller
   alias Funny.Catalog.Person
+  alias Funny.Catalog.Joke
   alias Funny.Catalog.Login
   alias Funny.Catalog.Family
+  alias Funny.Catalog.Comment
   alias Funny.Catalog.ChangePassword
 
   alias Funny.Accounts
@@ -199,6 +201,18 @@ defmodule FunnyWeb.AppController do
 
     fam_members = Person.list(%{family_id: family_id})
     render(conn, "settings.html", fam_members: fam_members, fam_name: fam_name)
+  end
+
+  def post_comment(conn, %{"comment" => comment}) do
+    %Person{id: person_id} = Guardian.Plug.current_resource(conn)
+
+    comment
+    |> Map.put("person_id", person_id)
+    |> Comment.insert()
+
+    just_commented = Joke.get_by(%{id: comment["joke_id"]})
+
+    redirect(conn, to: Routes.joke_path(conn, :show, just_commented))
   end
 
   def get_file(conn, %{"family_id" => family_id, "file" => file_name}) do

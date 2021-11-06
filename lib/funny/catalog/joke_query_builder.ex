@@ -13,6 +13,10 @@ defmodule Funny.Catalog.JokeQueryBuilder do
     from(query, preload: [:person])
   end
 
+  def build_query(query, :with_comments, true, _context) do
+    from(query, preload: [:comments])
+  end
+
   def build_query(query, :family_id, family_id, _context) do
     query =
       query

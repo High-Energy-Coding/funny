@@ -32,6 +32,42 @@
       </div>
 
     </div>
+
+
+
+
+  </div>
+
+</div>
+
+
+<div class="row justify-content-center mb-5">
+  <div class="col-10"> 
+
+    
+    <%= for comment <- @joke.comments do %>
+      <p>
+        <%= comment.content %>
+      </p>
+    <% end %> 
+
+    <%= form_for @new_comment, Routes.app_path(@conn, :post_comment), fn f -> %>
+
+      <%= hidden_input f, :joke_id, value: @joke.id %>
+
+      <div class="form-group">
+        <%= textarea f, :content, class: "form-control joke-input #{is_invalid_check(f, :content)}",
+                        "aria-describedby": input_id(f, :content)
+        %>
+        <%= error_tag f, :content %>
+      </div>
+
+
+      <div class="form-group d-grid gap-2 d-md-flex justify-content-md-end">
+        <%= submit "Comment", class: "btn btn-primary mb-3"%>
+      </div>
+    <% end %>
+    
   </div>
 </div>
 

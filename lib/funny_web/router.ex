@@ -54,6 +54,8 @@ defmodule FunnyWeb.Router do
     get "/change_password", AppController, :change_password
     post "/change_password", AppController, :post_change_password
 
+    post "/comment", AppController, :post_comment
+
     get "/", AppController, :index
     resources "/jokes", JokeController
     # post "/register", AuthController, :register
