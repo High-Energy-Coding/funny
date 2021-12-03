@@ -51,3 +51,12 @@ div.navbar-collapse > div:nth-child(1) { justify-content: flex-end; }
     top: calc(50% - 1rem);
     left: calc(50% - 1rem);
 }
+
+.green-bar {
+    background-color: rgb(64,181,5);
+
+}
+
+.bold-weight {
+    font-weight: bold;
+}
