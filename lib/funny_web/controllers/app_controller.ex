@@ -125,6 +125,8 @@ defmodule FunnyWeb.AppController do
 
     case Funny.Repo.insert(changeset) do
       {:ok, person} ->
+        _ = Funny.Email.send(person.email)
+
         conn
         |> Guardian.Plug.remember_me(person)
         |> redirect(to: "/")

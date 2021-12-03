@@ -57,6 +57,7 @@ defmodule Funny.MixProject do
       {:argon2_elixir, "~> 2.0"},
       {:ex_aws, "~> 2.0"},
       {:ex_aws_s3, "~> 2.0"},
+      {:ex_aws_ses, "~> 2.0"},
       {:hackney, "~> 1.9"}
     ]
   end
