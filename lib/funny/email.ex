@@ -1,9 +1,7 @@
 defmodule Funny.Email do
-  alias ExAws.SES
+  import Funny.AWS, only: [send_email: 3]
 
   def send(email) do
-    IO.inspect("pretend i sent something to #{email}")
-
     destination = %{
       to: [email]
     }
@@ -15,8 +13,6 @@ defmodule Funny.Email do
       subject: %{data: "Welcome to Funny App"}
     }
 
-    SES.send_email(destination, message, _source = "hello@highenergycoding.com")
-    |> ExAws.request()
-    |> IO.inspect()
+    send_email(destination, message, "hello@highenergycoding.com")
   end
 end
