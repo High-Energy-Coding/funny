@@ -15,10 +15,15 @@
               <%= text_to_html(joke.content) %>
               </p>
             </div>
-            <div class="card-body text-right">
-              <h4 class="card-title">
+            <div class="card-body ">
+              <h4 class="card-title text-end">
                 <%= joke.person.name %>
               </h4>
+                <%= if joke.comments != [] do %>
+                  <div class="card-text text-muted">
+                    <%= comment_svg() %><%= length(joke.comments) %>
+                  </div>
+                <% end %>
             </div>
           </div>
         <% end %> 

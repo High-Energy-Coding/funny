@@ -21,7 +21,7 @@ defmodule FunnyWeb.AppController do
     end
 
     case Catalog.list_jokes(
-           %{with_person: true, family_id: family_id, latest_first: true},
+           %{with_person: true, family_id: family_id, latest_first: true, with_comments: true},
            %Context{}
          ) do
       {:ok, jokes} -> render(conn, "index.html", jokes: jokes)

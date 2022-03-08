@@ -49,7 +49,8 @@ defmodule Funny.Catalog do
 
   @spec list_jokes(map, Context.t()) :: {:ok, list(Joke.t())}
   def list_jokes(criteria, context) do
-    with records when is_list(records) <- Joke.list(criteria, context: context) do
+    with records when is_list(records) <-
+           Joke.list(criteria, context: context, with_comments: true) do
       {:ok, records}
     end
   end
