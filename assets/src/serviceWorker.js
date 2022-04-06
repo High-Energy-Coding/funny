@@ -23,9 +23,11 @@ export function register(config) {
       return;
     }
 
+  }
     window.addEventListener('load', () => {
       const swUrl = `/service-worker.js`;
 
+    
       if (isLocalhost) {
         // This is running on localhost. Let's check if a service worker still exists or not.
         checkValidServiceWorker(swUrl, config);
@@ -43,7 +45,6 @@ export function register(config) {
         registerValidSW(swUrl, config);
       }
     });
-  }
 }
 
 function registerValidSW(swUrl, config) {
@@ -92,9 +93,11 @@ function registerValidSW(swUrl, config) {
 
 function checkValidServiceWorker(swUrl, config) {
   // Check if the service worker can be found. If it can't reload the page.
+      console.log("attempting to fetch service worker")
   fetch(swUrl)
     .then(response => {
       // Ensure service worker exists, and that we really are getting a JS file.
+      console.log("success at the fetch of SW")
       const contentType = response.headers.get('content-type');
       if (
         response.status === 404 ||
