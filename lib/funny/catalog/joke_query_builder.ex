@@ -3,6 +3,18 @@ defmodule Funny.Catalog.JokeQueryBuilder do
 
   import Ecto.Query, only: [from: 2, has_named_binding?: 2]
 
+  def build_query(query, :subs_for_joke, {joke_id, except_person_id}, _context) do
+    from(j in query,
+      join: p in assoc(j, :person),
+      join: f in assoc(p, :family),
+      join: members in assoc(f, :persons),
+      join: subs in assoc(members, :subscriptions),
+      where: j.id == ^joke_id,
+      where: subs.person_id != ^except_person_id,
+      select: subs
+    )
+  end
+
   def build_query(query, :latest_first, true, _context) do
     from(j in query, order_by: [desc: j.inserted_at])
   end

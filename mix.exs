@@ -59,7 +59,8 @@ defmodule Funny.MixProject do
       {:ex_aws, "~> 2.0"},
       {:ex_aws_s3, "~> 2.0"},
       {:ex_aws_ses, "~> 2.0"},
-      {:hackney, "~> 1.9"}
+      {:hackney, "~> 1.9"},
+      {:web_push_encryption, "~> 0.3"}
     ]
   end
 

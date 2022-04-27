@@ -43,10 +43,16 @@ if (MODE === "development") {
             new webpack.NamedModulesPlugin(),
             // Prevents compilation errors causing the hot loader to lose state
             //new webpack.NoEmitOnErrorsPlugin(),
-            new workboxPlugin.GenerateSW({
+//            new workboxPlugin.GenerateSW({
+//                include: ["includeme", "./includeme.js"],
+//                swDest: 'prebundle.js',
+//                skipWaiting: true,
+//                clientsClaim: true,
+//            }),
+            new workboxPlugin.InjectManifest({
+                //include: ["includeme", "./includeme.js"],
+                swSrc: './src/includeme.js',
                 swDest: 'service-worker.js',
-                skipWaiting: true,
-                clientsClaim: true,
             })
         ],
         module: {

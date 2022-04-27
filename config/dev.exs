@@ -77,4 +77,5 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 config :funny, :aws_adapter, Funny.AWS.Local
+
 import_config "dev.secret.exs"
