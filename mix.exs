@@ -45,6 +45,7 @@ defmodule Funny.MixProject do
        ref: "3cfe1141d8d03dd9e08cee891d0519bb6d0353f0"},
       {:phoenix, "~> 1.5.7"},
       {:phoenix_ecto, "~> 4.1"},
+      {:phoenix_live_reload, "~> 1.3"},
       {:ecto_sql, "~> 3.4"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_live_dashboard, "~> 0.4"},
@@ -58,7 +59,8 @@ defmodule Funny.MixProject do
       {:ex_aws, "~> 2.0"},
       {:ex_aws_s3, "~> 2.0"},
       {:ex_aws_ses, "~> 2.0"},
-      {:hackney, "~> 1.9"}
+      {:hackney, "~> 1.9"},
+      {:web_push_encryption, "~> 0.3"}
     ]
   end
 

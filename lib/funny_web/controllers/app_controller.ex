@@ -6,6 +6,7 @@ defmodule FunnyWeb.AppController do
   alias Funny.Catalog.Family
   alias Funny.Catalog.Comment
   alias Funny.Catalog.ChangePassword
+  alias Funny.Catalog.Subscription
 
   alias Funny.Accounts
 
@@ -215,6 +216,20 @@ defmodule FunnyWeb.AppController do
     just_commented = Joke.get_by(%{id: comment["joke_id"]})
 
     redirect(conn, to: Routes.joke_path(conn, :show, just_commented))
+  end
+
+  def register_subscription(conn, %{"subscription" => subscription}) do
+    %Person{id: person_id} = Guardian.Plug.current_resource(conn)
+
+    {:ok, _} =
+      subscription
+      |> Map.put("person_id", person_id)
+      |> Subscription.insert(
+        conflict_target: [:endpoint],
+        on_conflict: {:replace, [:updated_at]}
+      )
+
+    send_resp(conn, 200, "gucci")
   end
 
   def get_file(conn, %{"family_id" => family_id, "file" => file_name}) do

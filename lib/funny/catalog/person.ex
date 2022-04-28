@@ -8,6 +8,7 @@ defmodule Funny.Catalog.Person do
   alias Argon2
   alias Funny.Catalog.Joke
   alias Funny.Catalog.Family
+  alias Funny.Catalog.Subscription
 
   @type t :: %__MODULE__{}
 
@@ -19,6 +20,7 @@ defmodule Funny.Catalog.Person do
     field :email, :string
 
     has_many(:jokes, Joke)
+    has_many(:subscriptions, Subscription)
 
     belongs_to(:family, Family)
 

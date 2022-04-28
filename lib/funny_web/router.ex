@@ -12,10 +12,10 @@ defmodule FunnyWeb.Router do
   end
 
   pipeline :browser do
-    plug :accepts, ["html"]
+    plug :accepts, ["json", "html"]
     plug :fetch_session
     plug :fetch_flash
-    plug :protect_from_forgery
+    # plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
 
@@ -55,6 +55,7 @@ defmodule FunnyWeb.Router do
     post "/change_password", AppController, :post_change_password
 
     post "/comment", AppController, :post_comment
+    post "/registersubscription", AppController, :register_subscription
 
     get "/", AppController, :index
     resources "/jokes", JokeController

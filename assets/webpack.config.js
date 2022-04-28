@@ -14,14 +14,13 @@ var MODE =
     process.env.npm_lifecycle_event === "build" ? "production" : "development";
 var withDebug = !process.env["npm_config_nodebug"] && MODE == "development";
 console.log(process.env.npm_lifecycle_event);
-console.log('\x1b[36m%s\x1b[0m', `** elm-webpack-starter: mode "${MODE}", withDebug: ${withDebug}\n`);
 
 var common = {
     mode: MODE,
     entry: "./src/index.js",
     output: {
         path: path.resolve(__dirname, '../priv/static'),
-        publicPath: MODE == "production" ? "/" : "http://localhost:3000/",
+        publicPath: MODE == "production" ? "/" : "/",
         // FIXME webpack -p automatically adds hash when building for production
         //filename: MODE == "production" ? "[name]-[hash].js" : "index.js"
         filename: 'app.js'
@@ -29,7 +28,7 @@ var common = {
     plugins: [],
     resolve: {
         modules: [path.join(__dirname, "src"), "node_modules"],
-        extensions: [".js", ".elm", ".scss", ".png"]
+        extensions: [".js", ".scss", ".png"]
     },
     module: {
         rules: [
@@ -43,29 +42,21 @@ if (MODE === "development") {
             // Suggested for hot-loading
             new webpack.NamedModulesPlugin(),
             // Prevents compilation errors causing the hot loader to lose state
-            new webpack.NoEmitOnErrorsPlugin()
+            //new webpack.NoEmitOnErrorsPlugin(),
+//            new workboxPlugin.GenerateSW({
+//                include: ["includeme", "./includeme.js"],
+//                swDest: 'prebundle.js',
+//                skipWaiting: true,
+//                clientsClaim: true,
+//            }),
+            new workboxPlugin.InjectManifest({
+                //include: ["includeme", "./includeme.js"],
+                swSrc: './src/includeme.js',
+                swDest: 'service-worker.js',
+            })
         ],
         module: {
             rules: [
-                {
-                    test: /\.elm$/,
-                    exclude: [/elm-stuff/, /node_modules/],
-                    use: [
-                        { loader: "elm-hot-webpack-loader" },
-                        {
-                            loader: "elm-webpack-loader",
-                            options: {
-                                pathToElm: 'node_modules/.bin/elm',
-                                // add Elm's debug overlay to output
-                                debug: withDebug,
-                                //
-                                forceWatch: true
-                            }
-                        }
-                    ]
-                },
-
-
                 {
                     test: /\.js$/,
                     exclude: /node_modules/,
@@ -105,16 +96,16 @@ if (MODE === "development") {
                 }
 
             ]
-        },
-        devServer: {
-            inline: true,
-            stats: "errors-only",
-            contentBase: path.join(__dirname, "src/assets"),
-            historyApiFallback: true,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            }
         }
+        //devServer: {
+        //    inline: true,
+        //    stats: "errors-only",
+        //    contentBase: path.join(__dirname, "src/assets"),
+        //    historyApiFallback: true,
+        //    headers: {
+        //        'Access-Control-Allow-Origin': '*'
+        //    }
+        //}
     });
 }
 if (MODE === "production") {
@@ -159,17 +150,6 @@ if (MODE === "production") {
         ],
         module: {
             rules: [
-                {
-                    test: /\.elm$/,
-                    exclude: [/elm-stuff/, /node_modules/],
-                    use: {
-                        loader: "elm-webpack-loader",
-                        options: {
-                            optimize: true,
-                            pathToElm: 'node_modules/.bin/elm',
-                        }
-                    }
-                },
                 {
                     test: /\.css$/,
                     exclude: [/elm-stuff/, /node_modules/],

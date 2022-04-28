@@ -18,7 +18,7 @@ defmodule FunnyWeb.JokeController do
   end
 
   def create(conn, %{"joke" => joke_params}) do
-    %Person{family_id: family_id} = Guardian.Plug.current_resource(conn)
+    %Person{family_id: family_id, id: person_id} = Guardian.Plug.current_resource(conn)
 
     joke_params =
       case joke_params["image_attachment"] do
@@ -40,7 +40,9 @@ defmodule FunnyWeb.JokeController do
       end
 
     case Joke.insert(joke_params) do
-      {:ok, _} ->
+      {:ok, new_joke} ->
+        _ = Funny.Notifications.notify_subs(new_joke.id, _except = person_id)
+
         conn
         |> put_flash(:info, "Joke created successfully.")
         |> redirect(to: Routes.app_path(conn, :index))

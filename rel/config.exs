@@ -26,3 +26,9 @@ config :funny, :aws_adapter, Funny.AWS.Default
 config :funny, :s3_bucket, "high-energy-funny"
 
 config :ex_aws, region: "us-east-2"
+
+config :web_push_encryption, :vapid_details,
+  subject: "mailto:administrator@example.com",
+  public_key:
+    "BMA6chTT7_iznBFz22q4AqD6KggFm3pMzkUQjtZkjqvvM_PI3o3zKaQ8C0Aihv0t7iONTbL982QebW3Cf61aWKM",
+  private_key: System.fetch_env!("VAPID_PRIVATE_KEY")

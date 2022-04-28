@@ -33,6 +33,10 @@ npm-debug.log
 # we ignore priv/static. You may want to comment
 # this depending on your deployment strategy.
 #/priv/static/
+priv/static/app.js
+priv/static/service-worker.js
+priv/static/precache-manifest.*.js
+
 
 .DS_Store
 

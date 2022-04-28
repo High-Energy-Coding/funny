@@ -22,16 +22,23 @@ config :funny, FunnyWeb.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
-  check_origin: false,
+  check_origin: true,
   watchers: [
     node: [
-      "node_modules/.bin/webpack-dev-server",
-      "--hot",
+      "node_modules/.bin/webpack",
       "--colors",
-      "--stdin",
-      "--port",
-      "3000",
+      "--mode",
+      "development",
+      "--watch",
+      "--watch-options-stdin",
       cd: Path.expand("../assets", __DIR__)
+    ]
+  ],
+  live_reload: [
+    patterns: [
+      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif)$},
+      ~r{web/views/.*(ex)$},
+      ~r{web/templates/.*(eex)$}
     ]
   ]
 
@@ -70,4 +77,5 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 config :funny, :aws_adapter, Funny.AWS.Local
+
 import_config "dev.secret.exs"
