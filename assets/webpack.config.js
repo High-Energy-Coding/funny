@@ -142,10 +142,10 @@ if (MODE === "production") {
                 // both options are optional
                 filename: "app.css"
             }),
-            new workboxPlugin.GenerateSW({
-                swDest: './service-worker.js',
-                skipWaiting: true,
-                clientsClaim: true,
+            new workboxPlugin.InjectManifest({
+                //include: ["includeme", "./includeme.js"],
+                swSrc: './src/includeme.js',
+                swDest: 'service-worker.js',
             })
         ],
         module: {
