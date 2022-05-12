@@ -67,6 +67,7 @@ defmodule FunnyWeb do
 
       import FunnyWeb.ErrorHelpers
       import FunnyWeb.Gettext
+      import FunnyWeb.LazyImages
       alias FunnyWeb.Router.Helpers, as: Routes
     end
   end
