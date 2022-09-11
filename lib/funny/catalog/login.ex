@@ -14,7 +14,7 @@ defmodule Funny.Catalog.Login do
     person
     |> cast(attrs, [:email, :password])
     |> validate_required([:email, :password])
-    |> validate_format(:email, ~r/@/, message: "log back in with your email now please")
+    |> validate_format(:email, ~r/@/, message: "log the heck back in with your email now please")
     |> validate_length(:password, min: 4, message: "password has to be at least 4 characters")
     |> put_password_hash()
   end
